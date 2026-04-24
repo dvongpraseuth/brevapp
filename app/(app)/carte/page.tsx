@@ -15,7 +15,7 @@ export default function CartePage() {
 
   const subj = SUBJ.find(s => s.id === sub)
   const sn   = notions.filter(n => n.sub === sub)
-  const doms = [...new Set(sn.map(n => n.dom))]
+  const doms = Array.from(new Set(sn.map(n => n.dom)))
   const ok   = sn.filter(n => n.st === 'maitrise').length
   const pct  = sn.length ? Math.round(ok / sn.length * 100) : 0
   const note = getNoteEstimee(notions, sub)

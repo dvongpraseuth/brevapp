@@ -4,23 +4,17 @@ import { T } from '@/lib/constants'
 import { Ring } from '@/components/game/Ring'
 import { Card } from '@/components/ui/Card'
 import type { Notion } from '@/lib/types'
-
-interface Question {
-  id: string
-  nid: string
-  q: string
-  a: string
-}
+import type { DynQuestion } from '@/app/(app)/session/page'
 
 interface QuestionCardProps {
-  question: Question
-  notion: Notion | undefined
-  idx: number
-  total: number
+  question:     DynQuestion
+  notion:       Notion | undefined
+  idx:          number
+  total:        number
   answerStreak: number
-  shown: boolean
-  onShow: () => void
-  onAnswer: (res: 'ok' | 'flou' | 'non') => void
+  shown:        boolean
+  onShow:       () => void
+  onAnswer:     (res: 'ok' | 'flou' | 'non') => void
 }
 
 export function QuestionCard({
@@ -28,7 +22,7 @@ export function QuestionCard({
 }: QuestionCardProps) {
   return (
     <div style={{ padding: '16px 14px 110px' }}>
-      {/* Progress */}
+      {/* Barre de progression */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
         <div style={{ flex: 1, background: T.border, borderRadius: 999, height: 5 }}>
           <div style={{
@@ -55,18 +49,31 @@ export function QuestionCard({
           fontSize: 17, fontWeight: 700, fontFamily: 'Sora,sans-serif',
           color: T.text, lineHeight: 1.55, whiteSpace: 'pre-line',
         }}>
-          {question.q}
+          {question.question}
         </div>
+
         {shown && (
-          <div style={{ marginTop: 18, paddingTop: 18, borderTop: `1px solid ${T.border}` }}>
-            <div style={{ fontSize: 10, color: T.ok, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 10 }}>
-              ✓ Réponse
+          <>
+            <div style={{ marginTop: 18, paddingTop: 18, borderTop: `1px solid ${T.border}` }}>
+              <div style={{ fontSize: 10, color: T.ok, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 10 }}>
+                ✓ Réponse
+              </div>
+              <div style={{
+                fontSize: 14, color: T.text, whiteSpace: 'pre-line',
+                lineHeight: 1.7, fontFamily: 'Sora,sans-serif',
+              }}>
+                {question.reponse}
+              </div>
             </div>
-            <div style={{
-              fontSize: 14, color: T.text, whiteSpace: 'pre-line',
-              lineHeight: 1.7, fontFamily: 'Sora,sans-serif',
-            }}>{question.a}</div>
-          </div>
+            {question.conseil ? (
+              <div style={{
+                marginTop: 14, padding: '10px 14px', borderRadius: 10,
+                background: T.wipBg, border: `1px solid ${T.wipBorder}`,
+              }}>
+                <span style={{ fontSize: 11, color: T.wip }}>💡 {question.conseil}</span>
+              </div>
+            ) : null}
+          </>
         )}
       </Card>
 

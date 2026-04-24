@@ -4,48 +4,72 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 import type { Notion, GameStats, Reward } from './types'
 import { NOTIONS, INIT_REWARDS, ST_CYCLE } from './constants'
 import { BADGES, XP_GAIN, computeNewBadges } from './gamification'
+import { useProgressSync } from './hooks/useProgressSync'
+import { useStatsSync } from './hooks/useStatsSync'
 
 interface GameContextValue {
-  notions: Notion[]
-  game: GameStats & { rewards: Reward[] }
-  time: number
-  subject: string
-  toast: number | null
-  setTime: (t: number) => void
-  setSubject: (s: string) => void
-  setToast: (v: number | null) => void
-  cycleStatus: (id: string) => void
-  handleAnswer: (nid: string, res: 'ok' | 'flou' | 'non', xpGain: number, streak: number) => void
-  handleComplete: (isFlash: boolean) => void
-  handleRequestReward: (rid: string) => void
+  notions:  Notion[]
+  game:     GameStats & { rewards: Reward[] }
+  time:     number
+  subject:  string
+  toast:    number | null
+  loaded:   boolean
+  setTime:            (t: number) => void
+  setSubject:         (s: string) => void
+  setToast:           (v: number | null) => void
+  cycleStatus:        (id: string) => void
+  handleAnswer:       (nid: string, res: 'ok' | 'flou' | 'non', xpGain: number, streak: number) => void
+  handleComplete:     (isFlash: boolean) => void
+  handleRequestReward:(rid: string) => void
 }
 
 const GameContext = createContext<GameContextValue | null>(null)
 
+const DEFAULT_GAME: GameStats & { rewards: Reward[] } = {
+  user_id:        'local',
+  xp:             0,
+  streak:         0,
+  best_streak:    0,
+  last_session:   null,
+  total_sessions: 0,
+  flash_sessions: 0,
+  badges:         [],
+  rewards:        INIT_REWARDS,
+}
+
 export function GameProvider({ children }: { children: ReactNode }) {
   const [notions, setNotions] = useState<Notion[]>(NOTIONS)
-  const [time, setTime] = useState(20)
+  const [time,    setTime]    = useState(20)
   const [subject, setSubject] = useState('maths')
-  const [toast, setToast] = useState<number | null>(null)
-  const [game, setGame] = useState<GameStats & { rewards: Reward[] }>({
-    user_id: 'local',
-    xp: 240,
-    streak: 2,
-    best_streak: 3,
-    last_session: null,
-    total_sessions: 1,
-    flash_sessions: 0,
-    badges: ['first', 'streak3'],
-    rewards: INIT_REWARDS,
+  const [toast,   setToast]   = useState<number | null>(null)
+  const [loaded,  setLoaded]  = useState(false)
+  const [game, setGame] = useState<GameStats & { rewards: Reward[] }>(DEFAULT_GAME)
+
+  const { syncStatus } = useProgressSync(notions, (updates) => {
+    setNotions(ns => ns.map(n => updates[n.id] ? { ...n, st: updates[n.id] } : n))
+  })
+
+  const { saveStats, saveRewardRequest } = useStatsSync((stats, rewards) => {
+    setGame(g => ({
+      ...g,
+      ...stats,
+      rewards: rewards.length > 0 ? rewards : g.rewards,
+    }))
+    setLoaded(true)
   })
 
   const cycleStatus = useCallback((id: string) => {
-    setNotions(ns => ns.map(n =>
-      n.id === id
-        ? { ...n, st: ST_CYCLE[(ST_CYCLE.indexOf(n.st) + 1) % ST_CYCLE.length] }
-        : n
-    ))
-  }, [])
+    setNotions(ns => {
+      const updated = ns.map(n =>
+        n.id === id
+          ? { ...n, st: ST_CYCLE[(ST_CYCLE.indexOf(n.st) + 1) % ST_CYCLE.length] }
+          : n
+      )
+      const changed = updated.find(n => n.id === id)!
+      syncStatus(id, changed.sub, changed.st)
+      return updated
+    })
+  }, [syncStatus])
 
   const handleAnswer = useCallback((
     nid: string,
@@ -70,27 +94,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setGame(g => {
       const updated = {
         ...g,
-        xp: g.xp + XP_GAIN.session_complete,
+        xp:             g.xp + XP_GAIN.session_complete,
         total_sessions: g.total_sessions + 1,
         flash_sessions: isFlash ? g.flash_sessions + 1 : g.flash_sessions,
-        streak: g.streak + 1,
-        last_session: new Date().toISOString(),
+        streak:         g.streak + 1,
+        last_session:   new Date().toISOString(),
+        badges:         computeNewBadges(g, notions),
       }
-      return { ...updated, badges: computeNewBadges(updated, notions) }
+      // Persister en BDD à la fin de chaque session
+      saveStats(updated)
+      return updated
     })
     setToast(XP_GAIN.session_complete)
-  }, [notions])
+  }, [notions, saveStats])
 
   const handleRequestReward = useCallback((rid: string) => {
     setGame(g => ({
       ...g,
       rewards: g.rewards.map(r => r.id === rid ? { ...r, requested: true } : r),
     }))
-  }, [])
+    saveRewardRequest(rid)
+  }, [saveRewardRequest])
 
   return (
     <GameContext.Provider value={{
-      notions, game, time, subject, toast,
+      notions, game, time, subject, toast, loaded,
       setTime, setSubject, setToast,
       cycleStatus, handleAnswer, handleComplete, handleRequestReward,
     }}>

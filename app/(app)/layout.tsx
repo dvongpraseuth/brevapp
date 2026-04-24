@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import type { Route } from 'next'
 import { GameProvider, useGame } from '@/lib/game-context'
 import { XpToast } from '@/components/game/XpToast'
 import { T, EXAM, daysLeft } from '@/lib/constants'
 import type { ReactNode } from 'react'
 
-const TABS = [
+const TABS: { href: Route; icon: string; label: string }[] = [
   { href: '/',         icon: '⌂', label: 'Accueil' },
   { href: '/carte',    icon: '⊞', label: 'Carte'   },
   { href: '/session',  icon: '▷', label: 'Session'  },

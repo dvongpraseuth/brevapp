@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3200",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -13,9 +13,9 @@
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",
-    "@supabase/ssr": "^0.3.0",
+    "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.43.0",
-    "@anthropic-ai/sdk": "^0.24.0"
+    "groq-sdk": "^0.9.0"
   },
   "devDependencies": {
     "typescript": "^5",
