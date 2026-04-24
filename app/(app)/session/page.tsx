@@ -75,7 +75,7 @@ export default function SessionPage() {
 
     if (idx + 1 >= pool.length) {
       setDone(true)
-      handleComplete(time <= 10)
+      handleComplete(time <= 10, { ...score, [res]: score[res] + 1 })
     } else {
       setIdx(i => i + 1)
       setShown(false)

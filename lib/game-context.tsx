@@ -19,7 +19,7 @@ interface GameContextValue {
   setToast:           (v: number | null) => void
   cycleStatus:        (id: string) => void
   handleAnswer:       (nid: string, res: 'ok' | 'flou' | 'non', xpGain: number, streak: number) => void
-  handleComplete:     (isFlash: boolean) => void
+  handleComplete:     (isFlash: boolean, score: { ok: number; flou: number; non: number }) => void
   handleRequestReward:(rid: string) => void
 }
 
@@ -90,23 +90,39 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [notions])
 
-  const handleComplete = useCallback((isFlash: boolean) => {
+  const handleComplete = useCallback((
+    isFlash: boolean,
+    score: { ok: number; flou: number; non: number },
+  ) => {
     setGame(g => {
+      const xpEarned = XP_GAIN.session_complete
       const updated = {
         ...g,
-        xp:             g.xp + XP_GAIN.session_complete,
+        xp:             g.xp + xpEarned,
         total_sessions: g.total_sessions + 1,
         flash_sessions: isFlash ? g.flash_sessions + 1 : g.flash_sessions,
         streak:         g.streak + 1,
         last_session:   new Date().toISOString(),
         badges:         computeNewBadges(g, notions),
       }
-      // Persister en BDD à la fin de chaque session
       saveStats(updated)
+      // Sauvegarder la session pour la vue parent
+      fetch('/api/sessions', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject:      subject,
+          duration_min: time,
+          xp_earned:    xpEarned,
+          score_ok:     score.ok,
+          score_flou:   score.flou,
+          score_non:    score.non,
+        }),
+      }).catch(() => {})
       return updated
     })
     setToast(XP_GAIN.session_complete)
-  }, [notions, saveStats])
+  }, [notions, saveStats, subject, time])
 
   const handleRequestReward = useCallback((rid: string) => {
     setGame(g => ({

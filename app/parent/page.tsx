@@ -20,13 +20,14 @@ async function getChildData(parentId: string) {
   const childName = children[0].name
 
   // Données de l'enfant (RLS : parent peut lire grâce à parent_sees_child_*)
-  const [{ data: progress }, { data: stats }, { data: rewards }] = await Promise.all([
+  const [{ data: progress }, { data: stats }, { data: rewards }, { data: sessions }] = await Promise.all([
     supabase.from('progress').select('notion_id, subject, status').eq('user_id', childId),
     supabase.from('game_stats').select('*').eq('user_id', childId).single(),
     supabase.from('rewards').select('*').eq('user_id', childId).order('cost_xp'),
+    supabase.from('sessions').select('*').eq('user_id', childId).order('completed_at', { ascending: false }).limit(20),
   ])
 
-  return { childId, childName, progress, stats, rewards }
+  return { childId, childName, progress, stats, rewards, sessions }
 }
 
 export default async function ParentPage() {
@@ -59,7 +60,7 @@ export default async function ParentPage() {
     )
   }
 
-  const { childName, progress, stats, rewards } = data
+  const { childName, progress, stats, rewards, sessions } = data
 
   // Reconstituer les notions avec leur statut depuis la BDD
   const { NOTIONS } = await import('@/lib/constants')
@@ -117,6 +118,60 @@ export default async function ParentPage() {
           <StatCard label="Sessions" value={`${gs?.total_sessions ?? 0}`} unit="total" color={T.text} />
           <StatCard label="Gains débloqués" value={`${earnedEuros}€`} unit={`/ ${MILESTONES[MILESTONES.length-1].euros}€`} color={T.reward} />
         </div>
+
+        {/* Historique sessions */}
+        <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>
+          Historique des sessions ({sessions?.length ?? 0})
+        </div>
+        {!sessions?.length ? (
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: 16, marginBottom: 12, fontSize: 12, color: T.muted, textAlign: 'center' }}>
+            Aucune session terminée pour l&apos;instant
+          </div>
+        ) : (
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
+            {sessions.map((s, i) => {
+              const subj = SUBJ.find(x => x.id === s.subject)
+              const total = s.score_ok + s.score_flou + s.score_non
+              const pctOk = total ? Math.round(s.score_ok / total * 100) : 0
+              const date  = new Date(s.completed_at)
+              const label = date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
+              const heure = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+              return (
+                <div key={s.id} style={{
+                  padding: '12px 14px',
+                  borderBottom: i < sessions.length - 1 ? `1px solid ${T.border}` : 'none',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>
+                        {subj?.e} {subj?.label ?? s.subject} · {s.duration_min} min
+                      </div>
+                      <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>{label} à {heure}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 14, fontWeight: 900, fontFamily: 'Sora,sans-serif', color: T.xp }}>+{s.xp_earned} XP</div>
+                      <div style={{ fontSize: 11, color: pctOk >= 70 ? T.ok : pctOk >= 40 ? T.wip : '#DC2626', fontWeight: 700 }}>
+                        {pctOk}% réussi
+                      </div>
+                    </div>
+                  </div>
+                  {/* Barre score */}
+                  <div style={{ display: 'flex', height: 8, borderRadius: 999, overflow: 'hidden', gap: 2 }}>
+                    {s.score_ok   > 0 && <div style={{ flex: s.score_ok,   background: T.ok,   borderRadius: '999px 0 0 999px' }} title={`${s.score_ok} su`} />}
+                    {s.score_flou > 0 && <div style={{ flex: s.score_flou, background: T.wip                                   }} title={`${s.score_flou} flou`} />}
+                    {s.score_non  > 0 && <div style={{ flex: s.score_non,  background: '#DC2626', borderRadius: '0 999px 999px 0' }} title={`${s.score_non} pas su`} />}
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, marginTop: 5, fontSize: 10, color: T.muted }}>
+                    <span style={{ color: T.ok,     fontWeight: 700 }}>✅ {s.score_ok} su</span>
+                    <span style={{ color: T.wip,    fontWeight: 700 }}>🤔 {s.score_flou} flou</span>
+                    <span style={{ color: '#DC2626',fontWeight: 700 }}>❌ {s.score_non} pas su</span>
+                    <span>{total} question{total > 1 ? 's' : ''}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Niveau */}
         <div style={{
