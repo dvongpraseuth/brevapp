@@ -78,7 +78,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     streak: number,
   ) => {
     const stMap = { ok: 'maitrise', flou: 'en_cours_assimilation', non: 'vu_en_cours' } as const
-    setNotions(ns => ns.map(n => n.id === nid ? { ...n, st: stMap[res] } : n))
+    const newStatus = stMap[res]
+    setNotions(ns => {
+      const notion = ns.find(n => n.id === nid)
+      if (notion) syncStatus(nid, notion.sub, newStatus)
+      return ns.map(n => n.id === nid ? { ...n, st: newStatus } : n)
+    })
     if (xpGain > 0) {
       setGame(g => {
         const newXp   = g.xp + xpGain
