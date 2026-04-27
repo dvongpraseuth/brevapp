@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import type { Notion, GameStats, Reward } from './types'
 import { NOTIONS, INIT_REWARDS, ST_CYCLE } from './constants'
-import { BADGES, XP_GAIN, computeNewBadges } from './gamification'
+import { BADGES, XP_GAIN, computeNewBadges, isStreakBroken, hasSessionToday } from './gamification'
 import { useProgressSync } from './hooks/useProgressSync'
 import { useStatsSync } from './hooks/useStatsSync'
 
@@ -18,7 +18,7 @@ interface GameContextValue {
   setSubject:         (s: string) => void
   setToast:           (v: number | null) => void
   cycleStatus:        (id: string) => void
-  handleAnswer:       (nid: string, res: 'ok' | 'flou' | 'non', xpGain: number, streak: number) => void
+  handleAnswer:       (nid: string, res: 'ok' | 'flou' | 'non', xpGain: number) => void
   handleComplete:     (isFlash: boolean, score: { ok: number; flou: number; non: number }) => void
   handleRequestReward:(rid: string) => void
 }
@@ -75,7 +75,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     nid: string,
     res: 'ok' | 'flou' | 'non',
     xpGain: number,
-    streak: number,
   ) => {
     const stMap = { ok: 'maitrise', flou: 'en_cours_assimilation', non: 'vu_en_cours' } as const
     const newStatus = stMap[res]
@@ -86,9 +85,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     })
     if (xpGain > 0) {
       setGame(g => {
-        const newXp   = g.xp + xpGain
-        const newBest = Math.max(g.best_streak, streak)
-        const updated = { ...g, xp: newXp, best_streak: newBest }
+        const updated = { ...g, xp: g.xp + xpGain }
         return { ...updated, badges: computeNewBadges(updated, notions) }
       })
       setToast(xpGain)
@@ -101,15 +98,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
   ) => {
     setGame(g => {
       const xpEarned = XP_GAIN.session_complete
-      const updated = {
+      const today = new Date().toISOString().slice(0, 10)
+      const newStreak = isStreakBroken(g.last_session)
+        ? 1
+        : hasSessionToday(g.last_session)
+          ? g.streak
+          : g.streak + 1
+      const base = {
         ...g,
         xp:             g.xp + xpEarned,
         total_sessions: g.total_sessions + 1,
         flash_sessions: isFlash ? g.flash_sessions + 1 : g.flash_sessions,
-        streak:         g.streak + 1,
-        last_session:   new Date().toISOString(),
-        badges:         computeNewBadges(g, notions),
+        streak:         newStreak,
+        best_streak:    Math.max(g.best_streak, newStreak),
+        last_session:   today,
       }
+      const updated = { ...base, badges: computeNewBadges(base, notions) }
       saveStats(updated)
       // Sauvegarder la session pour la vue parent
       fetch('/api/sessions', {

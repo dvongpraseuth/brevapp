@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { T, SUBJ } from '@/lib/constants'
 import { getNoteEstimee, MILESTONES, BADGES, LEVELS } from '@/lib/gamification'
 import { ParentSetup } from './ParentSetup'
+import { RewardActions } from './RewardActions'
 import type { Notion, GameStats, Reward } from '@/lib/types'
 
 async function getChildData(parentId: string) {
@@ -301,8 +302,11 @@ function StatCard({ label, value, unit, color }: { label: string; value: string;
 
 function RewardRow({ reward }: { reward: { id: string; label: string; cost_xp: number }; supabaseUrl: string }) {
   return (
-    <div style={{ fontSize: 12, color: '#92400E', marginBottom: 4 }}>
-      • {reward.label} ({reward.cost_xp} XP)
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ fontSize: 12, color: '#92400E', fontWeight: 600 }}>
+        • {reward.label} ({reward.cost_xp} XP)
+      </div>
+      <RewardActions reward={reward} />
     </div>
   )
 }

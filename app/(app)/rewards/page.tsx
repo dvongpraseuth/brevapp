@@ -74,8 +74,10 @@ export default function RewardsPage() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 10, color: T.muted }}>{Math.min(game.xp, r.cost_xp)}/{r.cost_xp} XP</span>
-            {r.requested ? (
-              <span style={{ fontSize: 11, color: T.ok, fontWeight: 700 }}>✅ Demandé à papa</span>
+            {r.approved ? (
+              <span style={{ fontSize: 11, color: T.ok, fontWeight: 800 }}>🎉 Papa a validé !</span>
+            ) : r.requested ? (
+              <span style={{ fontSize: 11, color: T.wip, fontWeight: 700 }}>⏳ En attente de papa</span>
             ) : game.xp >= r.cost_xp ? (
               <button onClick={() => handleRequestReward(r.id)} style={{
                 padding: '6px 14px', borderRadius: 20, border: 'none',

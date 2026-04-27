@@ -1,4 +1,5 @@
-import type { Notion, Reward } from './types'
+import type { Reward } from './types'
+export { NOTIONS } from './programme'
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 export const T = {
@@ -43,87 +44,6 @@ export const daysLeft = (d: Date) => Math.max(0, Math.ceil((d.getTime() - Date.n
 
 export const TOTAL_D = (EXAM.maths.getTime() - START.getTime()) / 864e5
 export const ELAPSED = Math.min(TOTAL_D, (Date.now() - START.getTime()) / 864e5)
-
-// ─── PROGRAMME (extrait représentatif) ───────────────────────────────────────
-export const NOTIONS: Notion[] = [
-  // MATHS - Nombres & Calcul
-  { id: 'm01', sub: 'maths', dom: 'Nombres & Calcul', label: 'Fractions',             p: 1, st: 'maitrise' },
-  { id: 'm02', sub: 'maths', dom: 'Nombres & Calcul', label: 'Puissances',            p: 1, st: 'maitrise' },
-  { id: 'm03', sub: 'maths', dom: 'Nombres & Calcul', label: 'Notation scientifique', p: 1, st: 'vu_en_cours' },
-  { id: 'm04', sub: 'maths', dom: 'Nombres & Calcul', label: 'Racines carrées',       p: 1, st: 'vu_en_cours' },
-  { id: 'm05', sub: 'maths', dom: 'Nombres & Calcul', label: 'Distributivité',        p: 1, st: 'maitrise' },
-  { id: 'm06', sub: 'maths', dom: 'Nombres & Calcul', label: 'Identité (a+b)²',       p: 1, st: 'vu_en_cours' },
-  { id: 'm07', sub: 'maths', dom: 'Nombres & Calcul', label: 'Identité (a-b)²',       p: 1, st: 'non_vu' },
-  { id: 'm08', sub: 'maths', dom: 'Nombres & Calcul', label: 'Identité (a+b)(a-b)',   p: 1, st: 'non_vu' },
-  { id: 'm09', sub: 'maths', dom: 'Nombres & Calcul', label: 'Factorisation',         p: 1, st: 'en_cours_assimilation' },
-  { id: 'm10', sub: 'maths', dom: 'Nombres & Calcul', label: 'Équation 1er degré',    p: 1, st: 'en_cours_assimilation' },
-  { id: 'm11', sub: 'maths', dom: 'Nombres & Calcul', label: 'Équation produit A×B=0', p: 1, st: 'non_vu' },
-  { id: 'm12', sub: 'maths', dom: 'Nombres & Calcul', label: 'Mise en équation',      p: 1, st: 'non_vu' },
-  // MATHS - Fonctions
-  { id: 'm13', sub: 'maths', dom: 'Fonctions', label: 'Image & antécédent',    p: 1, st: 'vu_en_cours' },
-  { id: 'm14', sub: 'maths', dom: 'Fonctions', label: 'Tableau de valeurs',    p: 1, st: 'maitrise' },
-  { id: 'm15', sub: 'maths', dom: 'Fonctions', label: 'Fonction affine ax+b',  p: 1, st: 'non_vu' },
-  { id: 'm16', sub: 'maths', dom: 'Fonctions', label: 'Lire un graphe',        p: 1, st: 'maitrise' },
-  { id: 'm17', sub: 'maths', dom: 'Fonctions', label: 'Pourcentages',          p: 1, st: 'maitrise' },
-  // MATHS - Probabilités
-  { id: 'm18', sub: 'maths', dom: 'Probabilités', label: 'Notion de probabilité', p: 1, st: 'maitrise' },
-  { id: 'm19', sub: 'maths', dom: 'Probabilités', label: 'Calcul de probabilité', p: 1, st: 'maitrise' },
-  { id: 'm20', sub: 'maths', dom: 'Probabilités', label: 'Arbre de probabilités',  p: 1, st: 'vu_en_cours' },
-  { id: 'm21', sub: 'maths', dom: 'Probabilités', label: 'Tableau croisé',         p: 1, st: 'non_vu' },
-  { id: 'm22', sub: 'maths', dom: 'Statistiques', label: 'Moyenne & médiane',      p: 1, st: 'maitrise' },
-  // MATHS - Géométrie
-  { id: 'm23', sub: 'maths', dom: 'Géométrie', label: 'Thalès — énoncé',       p: 1, st: 'vu_en_cours' },
-  { id: 'm24', sub: 'maths', dom: 'Géométrie', label: 'Thalès — longueur',     p: 1, st: 'en_cours_assimilation' },
-  { id: 'm25', sub: 'maths', dom: 'Géométrie', label: 'Réciproque Thalès',     p: 1, st: 'non_vu' },
-  { id: 'm26', sub: 'maths', dom: 'Géométrie', label: 'Trigo — cos/sin/tan',   p: 1, st: 'vu_en_cours' },
-  { id: 'm27', sub: 'maths', dom: 'Géométrie', label: 'Trigo — longueur',      p: 1, st: 'non_vu' },
-  { id: 'm28', sub: 'maths', dom: 'Géométrie', label: 'Trigo — angle',         p: 1, st: 'non_vu' },
-  { id: 'm29', sub: 'maths', dom: 'Géométrie', label: 'Pythagore',             p: 1, st: 'maitrise' },
-  { id: 'm30', sub: 'maths', dom: 'Géométrie', label: 'Réciproque Pythagore',  p: 1, st: 'vu_en_cours' },
-  { id: 'm31', sub: 'maths', dom: 'Géométrie', label: 'Volumes solides',       p: 1, st: 'non_vu' },
-  // MATHS - Algo
-  { id: 'm32', sub: 'maths', dom: 'Algorithmique', label: 'Variables & conditions', p: 1, st: 'non_vu' },
-  { id: 'm33', sub: 'maths', dom: 'Algorithmique', label: 'Boucles',                p: 1, st: 'non_vu' },
-  { id: 'm34', sub: 'maths', dom: 'Algorithmique', label: 'Lire un algorithme',     p: 1, st: 'non_vu' },
-  // FRANÇAIS
-  { id: 'f01', sub: 'francais', dom: 'Lecture',     label: 'Comprendre un texte',     p: 1, st: 'vu_en_cours' },
-  { id: 'f02', sub: 'francais', dom: 'Lecture',     label: 'Narrateur & point de vue', p: 1, st: 'en_cours_assimilation' },
-  { id: 'f03', sub: 'francais', dom: 'Lecture',     label: 'Procédés stylistiques',    p: 1, st: 'non_vu' },
-  { id: 'f04', sub: 'francais', dom: 'Lecture',     label: 'Texte argumentatif',       p: 1, st: 'non_vu' },
-  { id: 'f05', sub: 'francais', dom: 'Grammaire',   label: 'Fonctions grammaticales',  p: 1, st: 'maitrise' },
-  { id: 'f06', sub: 'francais', dom: 'Grammaire',   label: 'Subordonnée relative',     p: 1, st: 'vu_en_cours' },
-  { id: 'f07', sub: 'francais', dom: 'Grammaire',   label: 'Subordonnée complétive',   p: 1, st: 'non_vu' },
-  { id: 'f08', sub: 'francais', dom: 'Grammaire',   label: 'Discours direct/indirect', p: 1, st: 'non_vu' },
-  { id: 'f09', sub: 'francais', dom: 'Orthographe', label: 'Accord sujet-verbe',       p: 1, st: 'maitrise' },
-  { id: 'f10', sub: 'francais', dom: 'Orthographe', label: 'Accord participe passé',   p: 1, st: 'non_vu' },
-  { id: 'f11', sub: 'francais', dom: 'Orthographe', label: 'Subjonctif présent',        p: 1, st: 'non_vu' },
-  { id: 'f12', sub: 'francais', dom: 'Rédaction',   label: 'Texte narratif',            p: 1, st: 'en_cours_assimilation' },
-  { id: 'f13', sub: 'francais', dom: 'Rédaction',   label: 'Paragraphe argumenté',      p: 1, st: 'non_vu' },
-  { id: 'f14', sub: 'francais', dom: 'Rédaction',   label: 'Réécrire un texte',         p: 1, st: 'non_vu' },
-  // HISTOIRE
-  { id: 'h01', sub: 'histoire', dom: 'Histoire',   label: '1ère Guerre mondiale',    p: 1, st: 'maitrise' },
-  { id: 'h02', sub: 'histoire', dom: 'Histoire',   label: 'Régimes totalitaires',    p: 1, st: 'maitrise' },
-  { id: 'h03', sub: 'histoire', dom: 'Histoire',   label: '2e Guerre mondiale',      p: 1, st: 'vu_en_cours' },
-  { id: 'h04', sub: 'histoire', dom: 'Histoire',   label: 'Vichy & collaboration',   p: 1, st: 'non_vu' },
-  { id: 'h05', sub: 'histoire', dom: 'Histoire',   label: 'Guerre Froide',           p: 1, st: 'non_vu' },
-  { id: 'h06', sub: 'histoire', dom: 'Histoire',   label: 'Décolonisation',          p: 1, st: 'non_vu' },
-  { id: 'h07', sub: 'histoire', dom: 'Géographie', label: 'Mondialisation',          p: 1, st: 'non_vu' },
-  { id: 'h08', sub: 'histoire', dom: 'Géographie', label: 'Espaces urbains',         p: 1, st: 'vu_en_cours' },
-  { id: 'h09', sub: 'histoire', dom: 'Géographie', label: 'Inégalités mondiales',    p: 1, st: 'non_vu' },
-  { id: 'h10', sub: 'histoire', dom: 'EMC',        label: 'Institutions françaises', p: 1, st: 'non_vu' },
-  { id: 'h11', sub: 'histoire', dom: 'EMC',        label: 'Droits fondamentaux',     p: 1, st: 'vu_en_cours' },
-  // SCIENCES
-  { id: 's01', sub: 'sciences', dom: 'Physique', label: 'Forces & mouvements',   p: 1, st: 'non_vu' },
-  { id: 's02', sub: 'sciences', dom: 'Physique', label: 'Circuits électriques',  p: 1, st: 'non_vu' },
-  { id: 's03', sub: 'sciences', dom: 'Physique', label: "Loi d'Ohm",             p: 1, st: 'non_vu' },
-  { id: 's04', sub: 'sciences', dom: 'Chimie',   label: 'Réactions chimiques',   p: 1, st: 'non_vu' },
-  { id: 's05', sub: 'sciences', dom: 'Chimie',   label: 'Acides et bases',       p: 1, st: 'non_vu' },
-  { id: 's06', sub: 'sciences', dom: 'SVT',      label: 'ADN & génétique',       p: 1, st: 'vu_en_cours' },
-  { id: 's07', sub: 'sciences', dom: 'SVT',      label: 'Hérédité',              p: 1, st: 'non_vu' },
-  { id: 's08', sub: 'sciences', dom: 'SVT',      label: 'Évolution & sélection', p: 1, st: 'non_vu' },
-  { id: 's09', sub: 'sciences', dom: 'SVT',      label: 'Système immunitaire',   p: 1, st: 'non_vu' },
-  { id: 's10', sub: 'sciences', dom: 'SVT',      label: 'Écosystèmes',           p: 1, st: 'non_vu' },
-]
 
 // ─── QUESTIONS ────────────────────────────────────────────────────────────────
 export const QS = [

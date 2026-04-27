@@ -63,10 +63,24 @@ export function computeNewBadges(stats: GameStats, notions: Notion[]): string[] 
   return newBadges
 }
 
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function dateStr(d: string): string {
+  return d.slice(0, 10)
+}
+
 export function isStreakBroken(lastSession: string | null): boolean {
   if (!lastSession) return false
-  const last = new Date(lastSession)
+  const last = dateStr(lastSession)
   const today = new Date()
-  const diffDays = Math.floor((today.getTime() - last.getTime()) / 864e5)
-  return diffDays > 1
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  return last !== todayStr() && last !== yesterday.toISOString().slice(0, 10)
+}
+
+export function hasSessionToday(lastSession: string | null): boolean {
+  if (!lastSession) return false
+  return dateStr(lastSession) === todayStr()
 }

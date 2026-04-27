@@ -68,10 +68,9 @@ export default function SessionPage() {
   const currQ      = currNotion ? cache[currNotion.id] : undefined
 
   const answer = (res: 'ok' | 'flou' | 'non') => {
-    const newStreak = res === 'ok' ? answerStreak + 1 : 0
-    setAnswerStreak(newStreak)
+    setAnswerStreak(s => res === 'ok' ? s + 1 : 0)
     setScore(s => ({ ...s, [res]: s[res] + 1 }))
-    handleAnswer(currNotion.id, res, res === 'ok' ? 30 : res === 'flou' ? 10 : 0, newStreak)
+    handleAnswer(currNotion.id, res, res === 'ok' ? 30 : res === 'flou' ? 10 : 0)
 
     if (idx + 1 >= pool.length) {
       setDone(true)

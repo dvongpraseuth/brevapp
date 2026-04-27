@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrevApp — État des lieux</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #F8F7F3; color: #1C1917; padding: 32px 24px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #78716C; margin-bottom: 32px; }
+  .meta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+  .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .badge-prod  { background: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7; }
+  .badge-warn  { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+  .badge-info  { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; }
+  .badge-alert { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #78716C; margin-bottom: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .card { background: #fff; border: 1px solid #E8E5DC; border-radius: 12px; padding: 14px 16px; }
+  .card-done  { border-left: 4px solid #16A34A; }
+  .card-todo  { border-left: 4px solid #F59E0B; }
+  .card-later { border-left: 4px solid #94A3B8; }
+  .card-bug   { border-left: 4px solid #DC2626; }
+  .card-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
+  .card-desc  { font-size: 12px; color: #78716C; line-height: 1.6; }
+  .icon { font-size: 14px; }
+  .url-box { background: #1C1917; color: #fff; border-radius: 10px; padding: 14px 18px; font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+  .url-row { display: flex; justify-content: space-between; align-items: center; }
+  .url-label { color: #9CA3AF; font-size: 11px; }
+  .url-link { color: #60A5FA; text-decoration: none; font-weight: 600; font-size: 13px; }
+  .url-link:hover { text-decoration: underline; }
+  .divider { height: 1px; background: #333; margin: 6px 0; }
+  .progress-bar-wrap { background: #E8E5DC; border-radius: 999px; height: 8px; margin-top: 16px; }
+  .progress-bar { height: 100%; border-radius: 999px; background: #1C1917; }
+  .progress-label { font-size: 11px; color: #78716C; margin-top: 6px; text-align: right; }
+  .stack { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .pill { background: #F1F0EB; border: 1px solid #E8E5DC; border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; color: #57534E; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; padding: 8px 12px; background: #F1F0EB; color: #57534E; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; }
+  td { padding: 9px 12px; border-bottom: 1px solid #E8E5DC; color: #1C1917; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .tag-done   { background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .tag-todo   { background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .tag-later  { background: #F1F5F9; color: #475569; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .tag-bug    { background: #FEE2E2; color: #991B1B; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .tag-warn   { background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .test-ids   { font-size: 10px; color: #9CA3AF; font-family: monospace; }
+  .section-sprint { background: #fff; border: 1px solid #E8E5DC; border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+  .sprint-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #F8F7F3; border-bottom: 1px solid #E8E5DC; }
+  .sprint-name { font-size: 13px; font-weight: 800; }
+  .sprint-items { padding: 4px 0; }
+  .sprint-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 16px; border-bottom: 1px solid #F1F0EB; font-size: 12px; }
+  .sprint-item:last-child { border-bottom: none; }
+  .si-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .si-done { background: #16A34A; }
+  .si-todo { background: #F59E0B; }
+  .si-bug  { background: #DC2626; }
+  .si-label { flex: 1; color: #1C1917; font-weight: 600; }
+  .si-note  { color: #78716C; font-size: 11px; margin-top: 2px; }
+  .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  .account-card { background: #fff; border: 1px solid #E8E5DC; border-radius: 12px; padding: 14px 16px; }
+  .account-email { font-size: 12px; font-weight: 700; color: #1C1917; margin-bottom: 6px; font-family: monospace; }
+  .account-stat { display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0; border-bottom: 1px solid #F1F0EB; }
+  .account-stat:last-child { border-bottom: none; }
+  .stat-label { color: #78716C; }
+  .stat-val { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<h1>📚 BrevApp — État des lieux</h1>
+<p class="subtitle">Mis à jour le 26 avril 2026 · J-65 avant l'épreuve de Maths (30 juin 2026)</p>
+
+<div class="meta">
+  <span class="badge badge-prod">✅ Live en production</span>
+  <span class="badge badge-info">🔗 brevapp-rust.vercel.app</span>
+  <span class="badge badge-info">📦 Next.js 14 · Supabase · Groq · Vercel</span>
+  <span class="badge badge-info">📚 163 notions DNB 2026</span>
+  <span class="badge badge-warn">⚠️ Liaison David↔Noah à faire</span>
+</div>
+
+<!-- URLS -->
+<div class="section">
+  <div class="section-title">🔗 URLs</div>
+  <div class="url-box">
+    <div class="url-row"><span class="url-label">Production</span><a class="url-link" href="https://brevapp-rust.vercel.app" target="_blank">brevapp-rust.vercel.app</a></div>
+    <div class="divider"></div>
+    <div class="url-row"><span class="url-label">Vue parent (David)</span><a class="url-link" href="https://brevapp-rust.vercel.app/parent" target="_blank">brevapp-rust.vercel.app/parent</a></div>
+    <div class="divider"></div>
+    <div class="url-row"><span class="url-label">Supabase</span><a class="url-link" href="https://supabase.com/dashboard/project/injywewfqdrutgjocwgh" target="_blank">injywewfqdrutgjocwgh</a></div>
+    <div class="divider"></div>
+    <div class="url-row"><span class="url-label">GitHub</span><a class="url-link" href="https://github.com/dvongpraseuth/brevapp" target="_blank">dvongpraseuth/brevapp</a></div>
+    <div class="divider"></div>
+    <div class="url-row"><span class="url-label">Vercel dashboard</span><a class="url-link" href="https://vercel.com/david-vongpraseuths-projects/brevapp" target="_blank">vercel.com → brevapp</a></div>
+  </div>
+</div>
+
+<!-- STACK -->
+<div class="section">
+  <div class="section-title">🛠 Stack technique</div>
+  <div class="card">
+    <div class="stack">
+      <span class="pill">Next.js 14 App Router</span>
+      <span class="pill">TypeScript strict</span>
+      <span class="pill">Tailwind CSS</span>
+      <span class="pill">Supabase Auth + Postgres</span>
+      <span class="pill">RLS activé</span>
+      <span class="pill">Groq llama-3.3-70b</span>
+      <span class="pill">Vercel (prod)</span>
+      <span class="pill">PWA installable</span>
+      <span class="pill">Magic link (sans mdp)</span>
+    </div>
+  </div>
+</div>
+
+<!-- COMPTES -->
+<div class="section">
+  <div class="section-title">👤 Comptes Supabase</div>
+  <div class="accounts-grid">
+    <div class="account-card" style="border-left: 4px solid #7C3AED;">
+      <div class="account-email">noah.vongpraseuth@gmail.com</div>
+      <div class="account-stat"><span class="stat-label">Rôle</span><span class="stat-val">student</span></div>
+      <div class="account-stat"><span class="stat-label">XP</span><span class="stat-val" style="color:#7C3AED">750 XP</span></div>
+      <div class="account-stat"><span class="stat-label">Streak</span><span class="stat-val" style="color:#EA580C">1 jour</span></div>
+      <div class="account-stat"><span class="stat-label">Sessions</span><span class="stat-val">5</span></div>
+      <div class="account-stat"><span class="stat-label">Badges</span><span class="stat-val">⚡ 📚 🔥</span></div>
+    </div>
+    <div class="account-card" style="border-left: 4px solid #0369A1;">
+      <div class="account-email">david.vongpraseuth@hotmail.fr</div>
+      <div class="account-stat"><span class="stat-label">Rôle</span><span class="stat-val">parent</span></div>
+      <div class="account-stat"><span class="stat-label">Liaison Noah</span><span class="stat-val" style="color:#DC2626">❌ Pas encore faite</span></div>
+      <div class="account-stat"><span class="stat-label">Action requise</span><span class="stat-val">Aller sur /parent</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- AVANCEMENT GLOBAL -->
+<div class="section">
+  <div class="section-title">📊 Avancement global</div>
+  <div class="card">
+    <div style="font-size:13px; font-weight:700; margin-bottom:10px;">Sprints 0→C terminés · Sprint D (leaderboard) restant</div>
+    <div class="progress-bar-wrap"><div class="progress-bar" style="width: 88%"></div></div>
+    <div class="progress-label">~88% du plan total</div>
+  </div>
+</div>
+
+<!-- SPRINTS -->
+<div class="section">
+  <div class="section-title">🗂 Historique des sprints</div>
+
+  <div class="section-sprint">
+    <div class="sprint-header"><span class="sprint-name">Sprint 0–2 — Fondations</span><span class="tag-done">✅ Terminé</span></div>
+    <div class="sprint-items">
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">Infrastructure Next.js 14 · Auth magic link · Middleware</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">5 tables Supabase + RLS + trigger auto premier login</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">5 pages mobile-first + bottom nav + PWA installable</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">Gamification : XP · 8 niveaux · 7 badges · streak · note simulée · euros</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">Questions Groq dynamiques · prefetch · fallback statique</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">Vue parent /parent · historique sessions · notes simulées</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">Déploiement Vercel prod</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-sprint">
+    <div class="sprint-header"><span class="sprint-name">Sprint A — Maintenance</span><span class="tag-done">✅ Terminé — 26/04</span></div>
+    <div class="sprint-items">
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">A1 — Purge compte ocoke07 · streak Noah corrigé en BDD (5 → 1)</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">A2 — Fix streak quotidien : hasSessionToday() + isStreakBroken() branchés dans handleComplete</div><div class="si-note">+1/jour max · reset à 1 si jour sauté · best_streak préservé</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-sprint">
+    <div class="sprint-header"><span class="sprint-name">Sprint B — Programme complet</span><span class="tag-done">✅ Terminé — 26/04</span></div>
+    <div class="sprint-items">
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">B1 — 163 notions DNB 2026 (Maths: 50 · Français: 44 · Hist-Géo: 36 · Sciences: 33)</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">B2 — Externalisé dans data/programme_brevet_2026.json + lib/programme.ts</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-sprint">
+    <div class="sprint-header"><span class="sprint-name">Sprint C — Vue parent complète</span><span class="tag-done">✅ Terminé — 26/04</span></div>
+    <div class="sprint-items">
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">C1 — Boutons ✅ Valider / ❌ Refuser dans /parent + API PATCH /parent/rewards</div><div class="si-note">Service role pour contourner RLS parent→enfant</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">C2 — Noah voit "🎉 Papa a validé !" côté rewards quand approved = true</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-done"></div><div><div class="si-label">C3 — router.refresh() → vue parent se met à jour immédiatement après action</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-sprint">
+    <div class="sprint-header"><span class="sprint-name">Sprint D — Leaderboard</span><span class="tag-todo">⏳ À faire</span></div>
+    <div class="sprint-items">
+      <div class="sprint-item"><div class="si-dot si-todo"></div><div><div class="si-label">D1 — Champ display_name sur profiles + page /profil</div></div></div>
+      <div class="sprint-item"><div class="si-dot si-todo"></div><div><div class="si-label">D2 — Page /leaderboard (opt-in · classement XP · pseudo · niveau · streak)</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTION URGENTE -->
+<div class="section">
+  <div class="section-title">🔥 Action requise maintenant</div>
+  <div class="grid">
+    <div class="card card-bug">
+      <div class="card-title"><span class="icon">🔗</span>Lier compte David ↔ Noah</div>
+      <div class="card-desc">Noah se connecte d'abord → David va sur <strong>/parent</strong> → entre l'email <code>noah.vongpraseuth@gmail.com</code>. À faire une seule fois.</div>
+    </div>
+    <div class="card card-todo">
+      <div class="card-title"><span class="icon">📲</span>Installer l'app sur le tel de Noah</div>
+      <div class="card-desc">Chrome mobile → <strong>brevapp-rust.vercel.app</strong> → "Ajouter à l'écran d'accueil"</div>
+    </div>
+  </div>
+</div>
+
+<!-- FONCTIONNALITÉS & TESTS -->
+<div class="section">
+  <div class="section-title">🧪 Fonctionnalités & couverture de tests</div>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <table>
+      <tr><th>Fonctionnalité</th><th>Statut</th><th>Tests (cahier-de-tests.md)</th><th>Résultat</th></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">AUTHENTIFICATION</td></tr>
+      <tr><td>Magic link email</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-AUTH-01</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+      <tr><td>Redirection si non connecté</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-AUTH-02</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">CARTE — PROGRAMME</td></tr>
+      <tr><td>163 notions par matière/domaine</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-CARTE-04</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+      <tr><td>Cycle de statut (tap)</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-CARTE-01, F-CARTE-02</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+      <tr><td>Persistance après reload</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-CARTE-03</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">SESSION</td></tr>
+      <tr><td>Génération Groq + prefetch N+1</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">I-Q-01, F-SES-07</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+      <tr><td>Fallback statique si Groq down</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">I-Q-03</span></td><td><span class="tag-warn">⚠️ Non testé</span></td></tr>
+      <tr><td>XP par réponse (OK/Flou/Non)</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-SES-03</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+      <tr><td>Mise à jour statut notion</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-SES-05, F-SES-06</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+      <tr><td>Flash session (≤ 10 min)</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-SES-04</span></td><td><span class="tag-warn">⚠️ Non testé</span></td></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">GAMIFICATION — STREAK</td></tr>
+      <tr><td>+1 par jour (premier session)</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">U-SC-01→04, F-STR-01→03</span></td><td><span class="tag-done">✅ Logique OK</span></td></tr>
+      <tr><td>Inchangé si déjà joué aujourd'hui</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">U-SC-03, F-STR-02</span></td><td><span class="tag-done">✅ Logique OK</span></td></tr>
+      <tr><td>Reset à 1 si jour sauté</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">U-SC-04, F-STR-04</span></td><td><span class="tag-done">✅ Logique OK</span></td></tr>
+      <tr><td>best_streak préservé après reset</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">U-SC-05, F-STR-05</span></td><td><span class="tag-done">✅ Logique OK</span></td></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">GAMIFICATION — BADGES (7)</td></tr>
+      <tr><td>⚡ 1ère session</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">U-BAD-01</span></td><td><span class="tag-done">✅ Noah l'a</span></td></tr>
+      <tr><td>🔥 Streak 3 jours</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">U-BAD-02</span></td><td><span class="tag-done">✅ Noah l'a</span></td></tr>
+      <tr><td>📚 Niveau Studieux (400 XP)</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">U-BAD-06</span></td><td><span class="tag-done">✅ Noah l'a</span></td></tr>
+      <tr><td>💥 Streak 7 · 🎯 Sniper · ⏱️ Flash · 🧠 Lv5</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">U-BAD-03→05, U-BAD-07</span></td><td><span class="tag-warn">⚠️ Non atteint</span></td></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">NOTE SIMULÉE</td></tr>
+      <tr><td>Calcul sur notions p=1 uniquement</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">U-NOTE-01→06</span></td><td><span class="tag-done">✅ Logique OK</span></td></tr>
+      <tr><td>Affichage /brevet et /parent</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-PAR-03</span></td><td><span class="tag-warn">⚠️ /parent non testé (liaison manquante)</span></td></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">REWARDS — NOAH</td></tr>
+      <tr><td>Bouton "Demander à papa" si XP ≥ coût</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-REW-01, F-REW-02</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+      <tr><td>Statut "🎉 Papa a validé !"</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-REW-03</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">REWARDS — PARENT</td></tr>
+      <tr><td>Boutons Valider / Refuser</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">I-PR-01, I-PR-02, F-PAR-04</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+      <tr><td>403 si non-parent appelle l'API</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">I-PR-03</span></td><td><span class="tag-warn">⚠️ Non testé</span></td></tr>
+      <tr><td>Refresh vue parent après action</td><td><span class="tag-done">✅ Prod</span></td><td>—</td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">VUE PARENT</td></tr>
+      <tr><td>Setup initial (liaison par email)</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-PAR-01, F-PAR-02</span></td><td><span class="tag-bug">⚠️ Pas encore fait</span></td></tr>
+      <tr><td>Tableau de bord complet</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">F-PAR-03</span></td><td><span class="tag-warn">⚠️ Non testé (liaison manquante)</span></td></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">SÉCURITÉ</td></tr>
+      <tr><td>401 sur toutes les APIs si non auth.</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">I-ST-02, I-SES-03, I-REW-03, I-PR-05</span></td><td><span class="tag-done">✅ Vérifié</span></td></tr>
+      <tr><td>Service role key absente du bundle</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">S-04, S-05</span></td><td><span class="tag-warn">⚠️ Non testé</span></td></tr>
+      <tr><td>Accès /parent non restreint (bug V2)</td><td><span class="tag-bug">🐛 Bug mineur</span></td><td><span class="test-ids">F-PAR-06</span></td><td><span class="tag-bug">🐛 Identifié</span></td></tr>
+
+      <tr><td colspan="4" style="background:#F8F7F3; font-weight:800; font-size:11px; padding:8px 12px; letter-spacing:0.5px;">PWA</td></tr>
+      <tr><td>Installable sur mobile</td><td><span class="tag-done">✅ Prod</span></td><td><span class="test-ids">NR-07</span></td><td><span class="tag-warn">⚠️ Non testé</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- BUGS CONNUS -->
+<div class="section">
+  <div class="section-title">🐛 Bugs connus</div>
+  <div class="grid">
+    <div class="card card-bug">
+      <div class="card-title"><span class="icon">🔗</span>Liaison parent/enfant non faite</div>
+      <div class="card-desc">David doit aller sur /parent et entrer l'email de Noah. Bloque tous les tests de la vue parent.</div>
+    </div>
+    <div class="card card-todo">
+      <div class="card-title"><span class="icon">🛡</span>/parent accessible par Noah (mineur)</div>
+      <div class="card-desc">Noah peut ouvrir l'URL /parent — rien ne s'affiche (pas d'enfant trouvé), mais il n'est pas redirigé. Fix en V2. (test F-PAR-06)</div>
+    </div>
+  </div>
+</div>
+
+<!-- V2 -->
+<div class="section">
+  <div class="section-title">🔮 V2 — Hors scope actuel</div>
+  <div class="grid">
+    <div class="card card-later"><div class="card-title"><span class="icon">👥</span>Leaderboard potes de Noah</div><div class="card-desc">Sprint D planifié · opt-in · classement XP · pseudo · display_name sur profiles</div></div>
+    <div class="card card-later"><div class="card-title"><span class="icon">🔔</span>Notifications push streak</div><div class="card-desc">Rappel quotidien pour maintenir le streak · service worker requis</div></div>
+    <div class="card card-later"><div class="card-title"><span class="icon">📅</span>Intégration Pronote</div><div class="card-desc">Matières du jour auto · adapter la session au planning de Noah</div></div>
+    <div class="card card-later"><div class="card-title"><span class="icon">🛡</span>Redirection /parent si non-parent</div><div class="card-desc">Fix bug F-PAR-06 · vérifier role côté middleware ou layout</div></div>
+    <div class="card card-later"><div class="card-title"><span class="icon">👨‍👩‍👦</span>Multi-enfants côté parent</div><div class="card-desc">Plusieurs enfants liés à un seul compte parent</div></div>
+  </div>
+</div>
+
+<!-- RECAP TECHNIQUE -->
+<div class="section">
+  <div class="section-title">📐 Récapitulatif technique</div>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <table>
+      <tr><th>Composant</th><th>Statut</th><th>Notes</th></tr>
+      <tr><td>Auth magic link</td><td><span class="tag-done">✅ OK</span></td><td>Supabase URL configurée pour prod</td></tr>
+      <tr><td>Base de données (5 tables)</td><td><span class="tag-done">✅ OK</span></td><td>profiles · progress · game_stats · rewards · sessions + RLS + trigger auto</td></tr>
+      <tr><td>API /questions (Groq)</td><td><span class="tag-done">✅ OK</span></td><td>llama-3.3-70b · JSON mode · fallback 14 questions statiques</td></tr>
+      <tr><td>API /stats</td><td><span class="tag-done">✅ OK</span></td><td>GET + POST · upsert game_stats</td></tr>
+      <tr><td>API /sessions</td><td><span class="tag-done">✅ OK</span></td><td>GET + POST · sauvegardée à chaque fin de session</td></tr>
+      <tr><td>API /rewards</td><td><span class="tag-done">✅ OK</span></td><td>PATCH requested=true (Noah demande)</td></tr>
+      <tr><td>API /parent</td><td><span class="tag-done">✅ OK</span></td><td>Liaison parent↔enfant par email · service role</td></tr>
+      <tr><td>API /parent/rewards</td><td><span class="tag-done">✅ OK</span></td><td>PATCH approved · service role · vérification role 403</td></tr>
+      <tr><td>Programme DNB 2026</td><td><span class="tag-done">✅ OK</span></td><td>163 notions · data/programme_brevet_2026.json · lib/programme.ts</td></tr>
+      <tr><td>Streak quotidien</td><td><span class="tag-done">✅ OK</span></td><td>isStreakBroken + hasSessionToday · +1/jour · reset si sauté</td></tr>
+      <tr><td>Rewards parent (Valider/Refuser)</td><td><span class="tag-done">✅ OK</span></td><td>RewardActions.tsx · router.refresh()</td></tr>
+      <tr><td>PWA</td><td><span class="tag-done">✅ OK</span></td><td>manifest + icônes 192/512 (fond #1C1917)</td></tr>
+      <tr><td>Liaison David ↔ Noah</td><td><span class="tag-todo">⏳ À faire</span></td><td>Via /parent une seule fois</td></tr>
+      <tr><td>Leaderboard (Sprint D)</td><td><span class="tag-later">📅 Planifié</span></td><td>display_name · /profil · /leaderboard opt-in</td></tr>
+      <tr><td>Accès /parent restreint</td><td><span class="tag-bug">🐛 Bug V2</span></td><td>Noah peut ouvrir /parent sans redirection</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- DOCS -->
+<div class="section">
+  <div class="section-title">📄 Documents de référence</div>
+  <div class="card">
+    <table>
+      <tr><th>Document</th><th>Chemin</th></tr>
+      <tr><td>Suivi de projet</td><td><code>SUIVI.md</code></td></tr>
+      <tr><td>Spécification fonctionnelle</td><td><code>docs/spec-fonctionnelle.md</code></td></tr>
+      <tr><td>Spécification technique</td><td><code>docs/spec-technique.md</code></td></tr>
+      <tr><td>Cahier de tests</td><td><code>docs/cahier-de-tests.md</code></td></tr>
+    </table>
+  </div>
+</div>
+
+<p style="font-size:11px; color:#9CA3AF; text-align:center; margin-top:32px;">BrevApp · David Vongpraseuth · 26 avril 2026</p>
+
+</body>
+</html>
