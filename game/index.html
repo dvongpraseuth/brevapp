@@ -52,6 +52,8 @@
   .hud-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
   .shield-chip { display: flex; align-items: center; gap: 6px; border-color: rgba(31,227,240,.7); background: rgba(20,102,201,.55); }
   .shield-chip svg { width: 18px; height: 18px; fill: #5EF2F7; }
+  .shield-chip.destr { border-color: rgba(255,138,61,.8); background: rgba(160,50,20,.55); }
+  .shield-chip.destr svg { fill: #FFB070; }
   .hud-center { display: flex; flex-direction: column; align-items: center; gap: 6px; }
   .timer { display: flex; align-items: baseline; gap: 4px; padding: 4px 16px 2px; }
   .timer b { font-family: var(--display); font-weight: 400; font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -78,8 +80,11 @@
     -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
     display: grid; place-items: center; padding: 0; transition: transform .08s, background-color .08s;
   }
-  .pad { width: 78px; height: 78px; border-radius: 24px; }
-  .pad svg { width: 34px; height: 34px; fill: var(--cream); }
+  .wheel { width: 150px; height: 150px; border-radius: 50%; touch-action: none; position: relative; }
+  .wheel::before { content: ""; position: absolute; inset: 8px; border-radius: 50%; background: rgba(21,18,46,.35); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .wheel svg { position: relative; width: 100%; height: 100%; display: block; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4)); transition: transform .18s ease-out; }
+  .wheel.grab svg { transition: none; }
+  @media (max-width: 380px) { .wheel { width: 132px; height: 132px; } }
   .pedal {
     border-radius: 16px 16px 22px 22px; align-content: end; padding-bottom: 10px;
     font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
@@ -139,6 +144,13 @@
   .dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.2); }
   .dots i.f { background: var(--coral); }
   .mode[aria-checked="true"] { border-color: var(--gold); background: rgba(255, 194, 61, 0.14); }
+  .games { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .game { text-align: left; border: 2px solid var(--line); background: rgba(255,255,255,.04); border-radius: 16px; padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; }
+  .game .gname { font-family: var(--display); font-size: 22px; line-height: 1; }
+  .game small { font-size: 12px; color: var(--muted); line-height: 1.3; }
+  .game[aria-checked="true"] { border-color: var(--gold); background: rgba(255, 194, 61, 0.14); }
+  .game[data-g="destructor"][aria-checked="true"] { border-color: var(--coral); background: rgba(255, 91, 58, 0.16); }
+  .game[data-g="destructor"] .gname { color: var(--coral); }
   .rules { display: flex; flex-wrap: wrap; gap: 6px; }
   .rules span { font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; color: var(--cream); }
   .rules b { color: var(--gold); }
@@ -189,6 +201,8 @@
   }
   #toast.show { opacity: 1; transform: none; }
   #toast strong { display: block; font-family: var(--display); font-weight: 400; font-size: clamp(34px, 8vw, 58px); color: var(--cream); text-shadow: 3px 3px 0 var(--coral), 0 0 30px rgba(0,0,0,.4); transform: skewX(-8deg); }
+  #toast span.good { background: #13806F; }
+  #toast span.bad { background: #B8321C; }
   #toast span { display: inline-block; margin-top: 6px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 14px; background: rgba(21,18,46,.7); border-radius: 999px; padding: 4px 12px; }
 
   @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.12); } }
@@ -230,8 +244,21 @@
 
   <div id="controls" hidden>
     <div class="cluster">
-      <button class="ctl pad" data-k="left" aria-label="Tourner à gauche"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 7 12l8.5 7.5z"/></svg></button>
-      <button class="ctl pad" data-k="right" aria-label="Tourner à droite"><svg viewBox="0 0 24 24"><path d="M8.5 4.5 17 12l-8.5 7.5z"/></svg></button>
+      <div class="wheel" id="wheel" role="slider" aria-label="Volant : pose le doigt à gauche ou à droite pour tourner" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0">
+        <svg viewBox="0 0 100 100" id="wheelSvg">
+          <defs>
+            <radialGradient id="rimG" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#4A4560"/><stop offset="1" stop-color="#17142C"/></radialGradient>
+            <radialGradient id="hubG" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#3A3552"/><stop offset="1" stop-color="#15122E"/></radialGradient>
+          </defs>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#rimG)" stroke-width="11"/>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,244,226,.18)" stroke-width="1" stroke-dasharray="2 3"/>
+          <path d="M44.5 6.2 A44 44 0 0 1 55.5 6.2" stroke="#FFC23D" stroke-width="11" fill="none"/>
+          <path d="M8 55 L33 57 Q38 66 42 76 L41 92 M92 55 L67 57 Q62 66 58 76 L59 92" stroke="#2A2545" stroke-width="9" fill="none" stroke-linejoin="round"/>
+          <rect x="22" y="44" width="56" height="10" rx="5" fill="#2A2545"/>
+          <circle cx="50" cy="55" r="15" fill="url(#hubG)" stroke="rgba(255,244,226,.25)" stroke-width="1"/>
+          <text x="50" y="59.5" text-anchor="middle" font-family="Racing Sans One, Impact, sans-serif" font-size="11" fill="#FFC23D">CT</text>
+        </svg>
+      </div>
     </div>
     <div class="cluster">
       <button class="ctl pedal brake" data-k="brake" aria-label="Freiner">FREIN</button>
@@ -254,6 +281,11 @@
         </div>
       </div>
       <div class="side">
+        <span class="lbl">Mode de jeu</span>
+        <div class="games" role="radiogroup" aria-label="Mode de jeu">
+          <button class="game" role="radio" data-g="classic" aria-checked="true"><span class="gname">Classique</span><small>Évite tout le monde, attrape le bouclier.</small></button>
+          <button class="game" role="radio" data-g="destructor" aria-checked="false"><span class="gname">Destructor</span><small>Bouclier infini : tu dégommes tout, mais chaque choc te freine un peu.</small></button>
+        </div>
         <span class="lbl">Ton chrono de départ</span>
         <div class="modes" role="radiogroup" aria-label="Chrono de départ">
           <button class="mode" role="radio" data-t="30" aria-checked="false"><b>30<small>s</small></b><span>Pilote</span><span class="dots"><i class="f"></i><i class="f"></i><i class="f"></i></span></button>
@@ -264,7 +296,7 @@
           <span>Véhicule évité <b>+100</b></span>
           <span>Frôlé <b>+250</b></span>
           <span>Checkpoint <b>+ du temps</b></span>
-          <span>Bouclier <b>dégomme tout !</b></span>
+          <span>Dégommé <b>+300</b> (Destructor <b>+150</b>)</span>
         </div>
         <button class="cta" id="startBtn">Prendre la route</button>
         <div class="meta">
@@ -730,7 +762,7 @@ function layout() {
   cvs.width = Math.round(cw * dpr); cvs.height = Math.round(ch * dpr);
   L.dpr = dpr; L.W = cvs.width; L.H = cvs.height; L.portrait = ch > cw * 1.05;
   L.horizon = L.H * (L.portrait ? 0.4 : 0.5);
-  L.carY = L.portrait ? L.H - 150 * dpr : L.H * 0.95;
+  L.carY = L.portrait ? L.H - 172 * dpr : L.H * 0.95;
   L.S = L.carY - L.horizon;
   const road = L.portrait ? L.W * 1.15 : Math.min(L.W * 0.66, L.S * 4.2);
   L.camH = ROAD_W * 2 * L.S / road;
@@ -751,7 +783,7 @@ function project(p, camX, camY, camZ) {
 const st = {
   mode: 'menu', prevMode: 'play', dist: 0, speed: 0, x: 0, steer: 0, time: 60, runTime: 60, score: 0, combo: 0, stage: 0,
   dodged: 0, near: 0, crashes: 0, top: 0, invuln: 0, shake: 0, off1: 0, off2: 0, endT: 0, cd: 0, cdShown: 0,
-  biome: 0, prevBiome: 0, fade: 1, braking: false, shield: 0, smashed: 0, offroad: false, nextSpawn: 0, clock: 0
+  biome: 0, prevBiome: 0, fade: 1, braking: false, shield: 0, smashed: 0, game: 'classic', elapsed: 0, splits: [], offroad: false, nextSpawn: 0, clock: 0
 };
 let ents = [], parts = [], pops = [];
 
@@ -777,6 +809,26 @@ document.querySelectorAll('[data-k]').forEach((el) => {
   ['pointerup', 'pointerleave', 'pointercancel'].forEach((t) => el.addEventListener(t, off));
   el.addEventListener('contextmenu', (e) => e.preventDefault());
 });
+const wheel = { v: 0, id: null, el: $('#wheel'), svg: $('#wheelSvg') };
+function setWheel(v) {
+  wheel.v = v; wheel.svg.style.transform = `rotate(${(v * 115).toFixed(1)}deg)`;
+  wheel.el.setAttribute('aria-valuenow', String(Math.round(v * 100)));
+}
+function wheelFromPointer(e) {
+  const r = wheel.el.getBoundingClientRect(), cx = r.left + r.width / 2, rad = r.width / 2;
+  let v = clamp((e.clientX - cx) / (rad * 0.72), -1, 1);
+  if (Math.abs(v) < 0.1) v = 0;
+  setWheel(v);
+}
+wheel.el.addEventListener('pointerdown', (e) => {
+  e.preventDefault(); Sound.init(); wheel.id = e.pointerId; wheel.el.classList.add('grab');
+  try { wheel.el.setPointerCapture(e.pointerId); } catch (err) { /* ok */ }
+  wheelFromPointer(e);
+});
+wheel.el.addEventListener('pointermove', (e) => { if (e.pointerId === wheel.id) wheelFromPointer(e); });
+const wheelUp = (e) => { if (e.pointerId !== wheel.id) return; wheel.id = null; wheel.el.classList.remove('grab'); setWheel(0); };
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach((t) => wheel.el.addEventListener(t, wheelUp));
+wheel.el.addEventListener('contextmenu', (e) => e.preventDefault());
 app.addEventListener('touchmove', (e) => { if (!e.target.closest('.overlay')) e.preventDefault(); }, { passive: false });
 
 /* ================= Son (Web Audio, tout synthétisé) =================
@@ -928,7 +980,7 @@ function spawn() {
   free.sort(() => Math.random() - 0.5);
   const occupied = 3 - free.length;
   const want = Math.min(Math.random() < d.dbl ? 2 : 1, 2 - occupied);
-  if (st.shield <= 0 && st.dist > 25000 && free.length > want && Math.random() < 0.08 && !ents.some((e) => e.kind === 'bonus')) {
+  if (st.game === 'classic' && st.shield <= 0 && st.dist > 25000 && free.length > want && Math.random() < 0.08 && !ents.some((e) => e.kind === 'bonus')) {
     ents.push({ kind: 'bonus', s: SPR.shield, x: LANE_X[free[free.length - 1]], z: z + 1200, speed: 0, wN: 0.4, len: 320 });
   }
   for (let i = 0; i < want; i++) {
@@ -971,13 +1023,14 @@ function updateEntities(dt, playing) {
       if (rel < -e.len) e.passed = true;
     } else if (playing && !e.hit && !e.passed && !e.fly) {
       const dx = Math.abs(st.x - e.x), reach = (reach0 + e.wN) / 2;
-      if (Math.abs(rel) < e.len && dx < reach * (st.shield > 0 ? 1 : 0.82)) { if (st.shield > 0) smash(e); else if (st.invuln > 0) e.passed = true; else crash(e); }
+      if (Math.abs(rel) < e.len && dx < reach * (shielded() ? 1 : 0.82)) { if (shielded()) smash(e); else if (st.invuln > 0) e.passed = true; else crash(e); }
       else if (e.prev !== undefined && e.prev >= -e.len && rel < -e.len) { e.passed = true; dodge(e, dx < reach * 1.28); }
     }
     e.prev = rel;
     if (rel < -(L.playerZ + 600) || rel > SPAWN_AHEAD + 40000) ents.splice(i, 1);
   }
 }
+const shielded = () => st.game === 'destructor' || st.shield > 0;
 const mult = () => Math.min(5, 1 + Math.floor(st.combo / 5));
 function crash(e) {
   e.hit = true; st.invuln = 1.2; st.shake = 1; st.combo = 0; st.crashes++;
@@ -996,11 +1049,13 @@ function grabShield() {
   Sound.shield();
 }
 function smash(e) {
-  e.hit = true; st.smashed++; st.combo++; st.shake = Math.max(st.shake, 0.45);
+  const destr = st.game === 'destructor';
+  e.hit = true; st.smashed++; st.shake = Math.max(st.shake, destr ? 0.35 : 0.45);
+  if (destr) st.speed *= e.kind === 'car' ? 0.86 : 0.92; else st.combo++;
   e.fly = { t: 0, vx: (e.x >= st.x ? 1 : -1) * (1.2 + Math.random() * 0.8), rot: (Math.random() < 0.5 ? -1 : 1) * (5 + Math.random() * 5) };
-  const pts = 300 * mult(); st.score += pts;
-  popup(`DÉGOMMÉ ! +${pts}`, '#1FE3F0', Math.sign(e.x - st.x) || 1);
-  for (let i = 0; i < 18; i++) { const a = -Math.PI * Math.random(); parts.push({ x: L.W / 2 + (Math.random() - 0.5) * L.carW * 0.8, y: L.lastCarY - L.carH * 0.8, vx: Math.cos(a) * 800 * L.dpr * Math.random(), vy: Math.sin(a) * 700 * L.dpr * Math.random(), g: 1400 * L.dpr, life: 0.55, max: 0.55, size: 3 * L.dpr, col: Math.random() < 0.5 ? 'rgba(31,227,240,' : 'rgba(255,244,226,' }); }
+  const pts = (destr ? 150 : 300) * mult(); st.score += pts;
+  popup(`DÉGOMMÉ ! +${pts}`, destr ? '#FF8A3D' : '#1FE3F0', Math.sign(e.x - st.x) || 1);
+  for (let i = 0; i < 18; i++) { const a = -Math.PI * Math.random(); parts.push({ x: L.W / 2 + (Math.random() - 0.5) * L.carW * 0.8, y: L.lastCarY - L.carH * 0.8, vx: Math.cos(a) * 800 * L.dpr * Math.random(), vy: Math.sin(a) * 700 * L.dpr * Math.random(), g: 1400 * L.dpr, life: 0.55, max: 0.55, size: 3 * L.dpr, col: Math.random() < 0.5 ? (destr ? 'rgba(255,138,61,' : 'rgba(31,227,240,') : 'rgba(255,244,226,' }); }
   Sound.smash();
   try { if (navigator.vibrate) navigator.vibrate(50); } catch (err) { /* ok */ }
 }
@@ -1018,12 +1073,13 @@ function popup(txt, col, side, delay = 0) { pops.push({ txt, col, side, t: -dela
 function update(dt) {
   const m = st.mode, playing = m === 'play';
   st.clock += dt;
+  if (m === 'play') st.elapsed += dt;
   const pSeg = findSeg(st.dist + L.playerZ), pct = st.speed / MAX;
   if (pSeg.biome !== st.biome) { st.prevBiome = st.biome; st.biome = pSeg.biome; st.fade = 0; }
   st.fade = Math.min(1, st.fade + dt / 1.5);
 
   let steerIn = 0, gas = false, brake = false;
-  if (playing) { steerIn = (input('left') ? -1 : 0) + (input('right') ? 1 : 0); gas = input('gas'); brake = input('brake'); }
+  if (playing) { steerIn = clamp((keys.left ? -1 : 0) + (keys.right ? 1 : 0) + wheel.v, -1, 1); gas = input('gas'); brake = input('brake'); }
   else if (m === 'menu') { steerIn = clamp(pct * pSeg.curve * CENTRIFUGAL + (0 - st.x) * 1.5, -1, 1); gas = st.speed < MAX * 0.55; }
   else if (m === 'ending') brake = st.speed > MAX * 0.1;
   st.braking = brake && st.speed > 0;
@@ -1046,14 +1102,18 @@ function update(dt) {
 
   if (playing || m === 'ending') updateEntities(dt, playing);
   if (playing) {
-    if (st.dist >= st.nextSpawn) { spawn(); const g = diff().gap; st.nextSpawn = st.dist + g * (0.7 + Math.random() * 0.6); }
+    if (st.dist >= st.nextSpawn) { spawn(); const g = diff().gap * (st.game === 'destructor' ? 0.78 : 1); st.nextSpawn = st.dist + g * (0.7 + Math.random() * 0.6); }
     st.time -= dt;
     const cpZ = (st.stage + 1) * STAGE_SEGS * SEG;
     if (st.dist + L.playerZ >= cpZ) {
       st.stage++;
       const bonus = Math.max(12, 24 - (st.stage - 1) * 2);
       st.time += bonus; st.score += 1000;
-      showToast('CHECKPOINT !', `+${bonus} s · Étape ${st.stage + 1} · ${BIOMES[st.stage % BIOME_COUNT].name}`);
+      st.splits.push(st.elapsed);
+      const bestSplit = loadSplits()[st.stage - 1];
+      let sub = `${fmtT(st.elapsed)} · +${bonus} s`, cls = '';
+      if (bestSplit) { const d = st.elapsed - bestSplit; sub = `${fmtT(st.elapsed)} (${d < 0 ? '−' : '+'}${fmtT(Math.abs(d))}) · +${bonus} s`; cls = d < 0 ? 'good' : 'bad'; }
+      showToast('CHECKPOINT !', sub, cls);
       Sound.checkpoint();
     }
     if (st.time <= 0) { st.time = 0; st.mode = 'ending'; st.endT = 0; Sound.over(); showToast('TEMPS ÉCOULÉ', `Score : ${fmt(st.score)}`); }
@@ -1188,12 +1248,13 @@ function drawPlayer(pSeg, pPct) {
   if (st.invuln > 0 && Math.floor(st.invuln * 12) % 2 === 0) ctx.globalAlpha = 0.45;
   ctx.drawImage(img, -L.carW / 2, -L.carH, L.carW, L.carH);
   ctx.restore();
-  if (st.shield > 0 && (st.shield > 2 || Math.floor(st.clock * 8) % 2 === 0)) {
+  const destr = st.game === 'destructor' && st.mode !== 'menu';
+  if (destr || (st.shield > 0 && (st.shield > 2 || Math.floor(st.clock * 8) % 2 === 0))) {
     const cx = x, cyy = y - L.carH * 0.5, rx = L.carW * 0.68, ry = L.carH * 0.78, pulse = 1 + 0.04 * Math.sin(st.clock * 10);
-    const rg = ctx.createRadialGradient(cx, cyy, rx * 0.3, cx, cyy, rx * pulse);
-    rg.addColorStop(0, 'rgba(31,227,240,0)'); rg.addColorStop(0.75, 'rgba(31,227,240,.18)'); rg.addColorStop(1, 'rgba(31,227,240,.5)');
+    const rg = ctx.createRadialGradient(cx, cyy, rx * 0.3, cx, cyy, rx * pulse), c = destr ? '255,120,50' : '31,227,240';
+    rg.addColorStop(0, `rgba(${c},0)`); rg.addColorStop(0.75, `rgba(${c},.16)`); rg.addColorStop(1, `rgba(${c},.5)`);
     ctx.fillStyle = rg; ctx.beginPath(); ctx.ellipse(cx, cyy, rx * pulse, ry * pulse, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = 'rgba(160,250,255,.85)'; ctx.lineWidth = 2.5 * L.dpr; ctx.stroke();
+    ctx.strokeStyle = destr ? 'rgba(255,190,120,.9)' : 'rgba(160,250,255,.85)'; ctx.lineWidth = 2.5 * L.dpr; ctx.stroke();
   }
   if (st.biome === 3 || st.braking) {
     ctx.globalCompositeOperation = 'lighter';
@@ -1229,12 +1290,12 @@ function render() {
   for (const b of buckets) b.length = 0;
   const baseAbs = Math.floor(st.dist / SEG);
   for (const e of ents) { const n = Math.floor(e.z / SEG) - baseAbs; if (n >= 1 && n < DRAW) buckets[n].push(e); }
-  const night = st.biome === 3;
+  const night = st.biome === 3, pN = Math.floor((st.dist + L.playerZ) / SEG) - baseAbs;
   for (let n = DRAW - 1; n > 0; n--) {
     const seg = segments[(base.index + n) % N];
     if (!seg.front) continue;
     const s1 = seg.p1.screen;
-    for (const sp of seg.sprites) drawSprite(sp.s, s1.scale, s1.x + s1.scale * sp.o * ROAD_W * L.S, s1.y, sp.o < 0 ? -1 : 0, seg.clip);
+    if (n > pN) for (const sp of seg.sprites) drawSprite(sp.s, s1.scale, s1.x + s1.scale * sp.o * ROAD_W * L.S, s1.y, sp.o < 0 ? -1 : 0, seg.clip);
     if (seg.index % STAGE_SEGS === 0) drawArch(seg);
     const list = buckets[n];
     if (list.length) { list.sort((a, b) => b.z - a.z); for (const e of list) drawEntity(e, seg, night); }
@@ -1279,15 +1340,16 @@ function hud() {
   const m = mult(); setText(E.combo, 'c', 'x' + m); E.combo.hidden = m < 2;
   const t = Math.max(0, st.time); setText(E.time, 't', t < 10 ? t.toFixed(1) : String(Math.ceil(t)));
   E.timerChip.classList.toggle('low', t < 10 && st.mode === 'play');
-  E.shieldChip.hidden = st.shield <= 0; if (st.shield > 0) setText(E.shieldVal, 'sh', st.shield.toFixed(1));
+  E.shieldChip.hidden = !shielded(); E.shieldChip.classList.toggle('destr', st.game === 'destructor');
+  if (shielded()) setText(E.shieldVal, 'sh', st.game === 'destructor' ? '∞' : st.shield.toFixed(1));
   setText(E.speed, 'v', String(Math.round(st.speed / MAX * KMH)));
   setText(E.stage, 'st', `Étape ${st.stage + 1} · ${BIOMES[st.stage % BIOME_COUNT].name}`);
   const prog = (st.dist + L.playerZ - st.stage * STAGE_SEGS * SEG) / (STAGE_SEGS * SEG);
   E.prog.style.transform = `scaleX(${clamp(prog, 0, 1).toFixed(3)})`;
 }
 let toastTimer = 0;
-function showToast(title, sub) {
-  E.toastTitle.textContent = title; E.toastSub.textContent = sub;
+function showToast(title, sub, cls) {
+  E.toastTitle.textContent = title; E.toastSub.textContent = sub; E.toastSub.className = cls || '';
   E.toast.classList.add('show'); clearTimeout(toastTimer);
   toastTimer = setTimeout(() => E.toast.classList.remove('show'), 1900);
 }
@@ -1298,8 +1360,11 @@ function syncMute() {
     b.setAttribute('aria-label', Sound.muted ? 'Activer le son' : 'Couper le son');
   });
 }
-function bestKey() { return 'ct-best-' + st.runTime; }
-function showBest() { const b = parseInt(store.get(bestKey(), '0'), 10) || 0; E.best.textContent = b ? fmt(b) : '—'; E.bestMode.textContent = st.runTime + ' s'; }
+function bestKey() { return (st.game === 'destructor' ? 'ct-best-d-' : 'ct-best-') + st.runTime; }
+function splitsKey() { return 'ct-splits-' + st.game; }
+function loadSplits() { try { const a = JSON.parse(store.get(splitsKey(), '[]')); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+const fmtT = (t) => t.toFixed(1).replace('.', ',') + ' s';
+function showBest() { const b = parseInt(store.get(bestKey(), '0'), 10) || 0; E.best.textContent = b ? fmt(b) : '—'; E.bestMode.textContent = (st.game === 'destructor' ? 'Destructor ' : '') + st.runTime + ' s'; }
 
 function drawPreview() {
   const c = E.preview, r = c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -1326,6 +1391,10 @@ function buildSwatches() {
   });
   const name = document.createElement('span'); name.className = 'paint-name'; name.textContent = PAINTS[paintIdx].name; E.swatches.appendChild(name);
 }
+document.querySelectorAll('.game').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('.game').forEach((o) => o.setAttribute('aria-checked', String(o === b)));
+  st.game = b.dataset.g; store.set('ct-game', st.game); showBest();
+}));
 document.querySelectorAll('.mode').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('.mode').forEach((o) => o.setAttribute('aria-checked', String(o === b)));
   st.runTime = parseInt(b.dataset.t, 10); store.set('ct-mode', String(st.runTime)); showBest();
@@ -1335,7 +1404,7 @@ let wakeLock = null;
 function startRun() {
   Sound.init();
   try { if (navigator.wakeLock && !wakeLock) navigator.wakeLock.request('screen').then((l) => { wakeLock = l; l.addEventListener('release', () => { wakeLock = null; }); }).catch(() => {}); } catch (e) { /* ok */ }
-  Object.assign(st, { mode: 'countdown', dist: 0, speed: 0, x: 0, steer: 0, time: st.runTime, score: 0, combo: 0, stage: 0, dodged: 0, near: 0, crashes: 0, top: 0, invuln: 0, shake: 0, endT: 0, cd: 3, cdShown: 0, nextSpawn: 2500, shield: 0, smashed: 0 });
+  Object.assign(st, { mode: 'countdown', dist: 0, speed: 0, x: 0, steer: 0, time: st.runTime, score: 0, combo: 0, stage: 0, dodged: 0, near: 0, crashes: 0, top: 0, invuln: 0, shake: 0, endT: 0, cd: 3, cdShown: 0, nextSpawn: 2500, shield: 0, smashed: 0, elapsed: 0, splits: [] });
   Sound.resetEngine();
   ents = []; parts = []; pops = [];
   const b = findSeg(L.playerZ).biome; st.biome = st.prevBiome = b; st.fade = 1;
@@ -1346,6 +1415,7 @@ function gameOver() {
   st.mode = 'over';
   const prev = parseInt(store.get(bestKey(), '0'), 10) || 0, rec = st.score > prev;
   if (rec) store.set(bestKey(), String(Math.round(st.score)));
+  const sp = loadSplits(); st.splits.forEach((t, i) => { if (!sp[i] || t < sp[i]) sp[i] = Math.round(t * 100) / 100; }); store.set(splitsKey(), JSON.stringify(sp));
   $('#finalScore').textContent = fmt(st.score);
   $('#recordMsg').hidden = !(rec && st.score > 0);
   $('#stDodged').textContent = fmt(st.dodged); $('#stNear').textContent = fmt(st.near); $('#stCp').textContent = fmt(st.stage);
@@ -1387,6 +1457,8 @@ function init() {
   buildSprites(); buildLayers(); buildTrack(); layout();
   st.runTime = [30, 60, 90].includes(parseInt(store.get('ct-mode', '60'), 10)) ? parseInt(store.get('ct-mode', '60'), 10) : 60;
   document.querySelectorAll('.mode').forEach((o) => o.setAttribute('aria-checked', String(parseInt(o.dataset.t, 10) === st.runTime)));
+  st.game = store.get('ct-game', 'classic') === 'destructor' ? 'destructor' : 'classic';
+  document.querySelectorAll('.game').forEach((o) => o.setAttribute('aria-checked', String(o.dataset.g === st.game)));
   buildSwatches(); syncMute(); showBest(); drawPreview();
   st.biome = st.prevBiome = findSeg(L.playerZ).biome;
   requestAnimationFrame((t) => { last = t; frame(t); });
