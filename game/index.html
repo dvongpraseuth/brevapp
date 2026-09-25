@@ -151,6 +151,34 @@
   .game[aria-checked="true"] { border-color: var(--gold); background: rgba(255, 194, 61, 0.14); }
   .game[data-g="destructor"][aria-checked="true"] { border-color: var(--coral); background: rgba(255, 91, 58, 0.16); }
   .game[data-g="destructor"] .gname { color: var(--coral); }
+  .game.daily { grid-column: 1 / -1; border-color: rgba(31,199,193,.5); }
+  .game.daily .gname { color: var(--teal); }
+  .game.daily em { font-style: normal; font-size: 16px; color: var(--cream); margin-left: 4px; }
+  .game.daily[aria-checked="true"] { border-color: var(--teal); background: rgba(31,199,193,.14); }
+  .daily-info { border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .daily-info p { margin: 0; }
+  .tries { font-weight: 700; }
+  .tries i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-left: 4px; background: var(--teal); vertical-align: -1px; }
+  .tries i.used { background: rgba(255,255,255,.18); }
+  .hint { margin: 0; font-size: 12px; color: var(--muted); }
+  .daily-box { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+  .daily-box .lbl { margin: 0; }
+  .splits { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .splits li { display: flex; justify-content: space-between; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 5px 10px; font-variant-numeric: tabular-nums; }
+  .splits .d { font-weight: 700; }
+  .splits .good { color: #5EE0B0; } .splits .bad { color: #FF8A6A; } .splits .none { color: var(--muted); }
+  .emoji-row { margin: 0; font-size: 22px; letter-spacing: 2px; text-align: center; }
+  #shareText { width: 100%; min-height: 84px; border-radius: 12px; background: rgba(0,0,0,.25); color: var(--cream); border: 1px solid var(--line); padding: 8px; font: 13px var(--body); -webkit-user-select: text; user-select: text; }
+  .chore-overlay { background: rgba(21,18,46,.88); }
+  .chore-panel { align-items: center; }
+  .chore-panel .cta, .chore-panel .ghost { width: 100%; }
+  .cta:disabled { opacity: .45; box-shadow: 0 6px 0 rgba(0,0,0,.25); cursor: default; }
+  .breath { position: relative; width: 150px; height: 150px; display: grid; place-items: center; margin: 4px 0; }
+  .breath-ring { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgba(31,199,193,.35) 0%, rgba(31,199,193,.12) 60%, rgba(31,199,193,0) 72%); border: 2px solid rgba(31,199,193,.6); animation: breathe 8s ease-in-out infinite; }
+  .breath b { position: relative; font-family: var(--display); font-weight: 400; font-size: 52px; color: var(--cream); font-variant-numeric: tabular-nums; }
+  .chore-text { margin: 0; font-family: var(--display); font-size: 30px; line-height: 1.1; text-wrap: balance; }
+  .chore-sub { margin: 0; color: var(--muted); line-height: 1.4; }
+  @keyframes breathe { 0%, 100% { transform: scale(.72); } 50% { transform: scale(1); } }
   .rules { display: flex; flex-wrap: wrap; gap: 6px; }
   .rules span { font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; color: var(--cream); }
   .rules b { color: var(--gold); }
@@ -208,7 +236,7 @@
   @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.12); } }
   @keyframes pop { 0% { opacity: 0; transform: scale(1.8); } 20% { opacity: 1; transform: scale(1); } 75% { opacity: 1; } 100% { opacity: 0; transform: scale(.9); } }
   @media (prefers-reduced-motion: reduce) {
-    .timer.low b, #count.pop { animation: none; }
+    .timer.low b, #count.pop, .breath-ring { animation: none; }
     #count.pop { opacity: 1; }
   }
 </style>
@@ -283,10 +311,17 @@
       <div class="side">
         <span class="lbl">Mode de jeu</span>
         <div class="games" role="radiogroup" aria-label="Mode de jeu">
+          <button class="game daily" role="radio" data-g="daily" aria-checked="false"><span class="gname">Défi du jour <em id="dailyNum">#1</em></span><small id="dailyDesc">Même route et même trafic pour tout le monde. 2 essais par jour.</small></button>
           <button class="game" role="radio" data-g="classic" aria-checked="true"><span class="gname">Classique</span><small>Évite tout le monde, attrape le bouclier.</small></button>
           <button class="game" role="radio" data-g="destructor" aria-checked="false"><span class="gname">Destructor</span><small>Bouclier infini : tu dégommes tout, mais chaque choc te freine un peu.</small></button>
         </div>
-        <span class="lbl">Ton chrono de départ</span>
+        <div class="daily-info" id="dailyInfo" hidden>
+          <span class="lbl">Aujourd'hui</span>
+          <p id="dailyRules">Règles : Classique · chrono 60 s</p>
+          <p class="tries">Essais restants : <span id="triesDots"></span></p>
+          <p class="hint">Plus d'essai ? Une petite pause corvée et c'est reparti.</p>
+        </div>
+        <span class="lbl" id="chronoLbl">Ton chrono de départ</span>
         <div class="modes" role="radiogroup" aria-label="Chrono de départ">
           <button class="mode" role="radio" data-t="30" aria-checked="false"><b>30<small>s</small></b><span>Pilote</span><span class="dots"><i class="f"></i><i class="f"></i><i class="f"></i></span></button>
           <button class="mode" role="radio" data-t="60" aria-checked="true"><b>60<small>s</small></b><span>Normal</span><span class="dots"><i class="f"></i><i class="f"></i><i></i></span></button>
@@ -310,6 +345,7 @@
   <div id="pause" class="overlay" hidden>
     <div class="panel small-panel">
       <p class="pause-title">Pause</p>
+      <p class="chore-sub" id="pauseTip"></p>
       <div class="row">
         <button class="cta" id="resumeBtn">Reprendre</button>
       </div>
@@ -317,6 +353,17 @@
         <button class="ghost mute-btn" aria-label="Couper le son"><span class="snd-on">Son : oui</span><span class="snd-off" hidden>Son : non</span></button>
         <button class="ghost" id="quitBtn">Abandonner</button>
       </div>
+    </div>
+  </div>
+
+  <div id="chore" class="overlay chore-overlay" hidden>
+    <div class="panel small-panel chore-panel">
+      <p class="eyebrow" id="choreWhen">Pause corvée</p>
+      <div class="breath" aria-hidden="true"><div class="breath-ring"></div><b id="choreCount">30</b></div>
+      <p class="chore-text" id="choreText">Range ton cartable</p>
+      <p class="chore-sub" id="choreSub"></p>
+      <button class="cta" id="choreDone" disabled>C'est fait !</button>
+      <button class="ghost" id="choreSkip">Plus tard</button>
     </div>
   </div>
 
@@ -333,6 +380,14 @@
         <div><dt>Dégommés</dt><dd id="stSmash">0</dd></div>
         <div><dt>Accrochages</dt><dd id="stCrash">0</dd></div>
       </dl>
+      <div id="dailyBox" class="daily-box" hidden>
+        <p class="lbl">Tes checkpoints · référence 25 s par étape</p>
+        <ol class="splits" id="splitList"></ol>
+        <p class="emoji-row" id="emojiRow"></p>
+        <button class="ghost" id="shareBtn">Copier mon résultat</button>
+        <textarea id="shareText" readonly hidden aria-label="Résultat à partager"></textarea>
+        <p class="hint" id="triesMsg"></p>
+      </div>
       <div class="row">
         <button class="cta" id="againBtn">Rejouer</button>
         <button class="ghost" id="menuBtn">Menu</button>
@@ -706,9 +761,10 @@ function addRoad(enter, hold, leave, curve, dy, biome) {
   for (let n = 0; n < hold; n++) addSegment(curve, easeInOut(startY, endY, (enter + n) / total), biome);
   for (let n = 0; n < leave; n++) addSegment(easeInOut(curve, 0, n / leave), easeInOut(startY, endY, (enter + hold + n) / total), biome);
 }
-function buildTrack() {
-  segments = [];
-  const R = rng(7), between = (a, b) => a + R() * (b - a);
+let trackSeed = 0;
+function buildTrack(seed = 7) {
+  segments = []; trackSeed = seed;
+  const R = rng(seed), between = (a, b) => a + R() * (b - a);
   for (let b = 0; b < BIOME_COUNT; b++) {
     const target = (b + 1) * STAGE_SEGS;
     addRoad(10, 50, 10, 0, 0, b);
@@ -725,11 +781,11 @@ function buildTrack() {
   }
   segments[segments.length - 1].p2.world.y = 0;
   N = segments.length; trackLen = N * SEG;
-  decorate();
+  decorate(seed);
 }
-function decorate() {
+function decorate(seed) {
   for (let b = 0; b < BIOME_COUNT; b++) {
-    const R = rng(99 + b), B = BIOMES[b], start = b * STAGE_SEGS, end = start + STAGE_SEGS;
+    const R = rng(seed * 13 + 99 + b), B = BIOMES[b], start = b * STAGE_SEGS, end = start + STAGE_SEGS;
     for (let i = start + 8; i < end - 4; i++) {
       const seg = segments[i];
       if (b === 3) {
@@ -783,7 +839,7 @@ function project(p, camX, camY, camZ) {
 const st = {
   mode: 'menu', prevMode: 'play', dist: 0, speed: 0, x: 0, steer: 0, time: 60, runTime: 60, score: 0, combo: 0, stage: 0,
   dodged: 0, near: 0, crashes: 0, top: 0, invuln: 0, shake: 0, off1: 0, off2: 0, endT: 0, cd: 0, cdShown: 0,
-  biome: 0, prevBiome: 0, fade: 1, braking: false, shield: 0, smashed: 0, game: 'classic', elapsed: 0, splits: [], offroad: false, nextSpawn: 0, clock: 0
+  biome: 0, prevBiome: 0, fade: 1, braking: false, shield: 0, smashed: 0, game: 'classic', daily: false, elapsed: 0, splits: [], offroad: false, nextSpawn: 0, clock: 0
 };
 let ents = [], parts = [], pops = [];
 
@@ -973,25 +1029,26 @@ function diff() {
   return { gap: Math.max(4200, 12500 - s * 1900), obs: Math.min(0.45, 0.18 + s * 0.07), dbl: Math.min(0.5, 0.06 + s * 0.1),
     lc: Math.min(0.45, s * 0.12), spMin: 0.28, spMax: Math.min(0.62, 0.45 + s * 0.04) };
 }
+let runRnd = Math.random;
 function spawn() {
   const d = diff(), z = st.dist + L.playerZ + SPAWN_AHEAD;
   const near = ents.filter((e) => Math.abs(e.z - z) < 2600);
   const free = [0, 1, 2].filter((li) => !near.some((e) => Math.abs(e.x - LANE_X[li]) < 0.45));
-  free.sort(() => Math.random() - 0.5);
+  free.sort(() => runRnd() - 0.5);
   const occupied = 3 - free.length;
-  const want = Math.min(Math.random() < d.dbl ? 2 : 1, 2 - occupied);
-  if (st.game === 'classic' && st.shield <= 0 && st.dist > 25000 && free.length > want && Math.random() < 0.08 && !ents.some((e) => e.kind === 'bonus')) {
+  const want = Math.min(runRnd() < d.dbl ? 2 : 1, 2 - occupied);
+  if (st.game === 'classic' && st.shield <= 0 && st.dist > 25000 && free.length > want && runRnd() < 0.08 && !ents.some((e) => e.kind === 'bonus')) {
     ents.push({ kind: 'bonus', s: SPR.shield, x: LANE_X[free[free.length - 1]], z: z + 1200, speed: 0, wN: 0.4, len: 320 });
   }
   for (let i = 0; i < want; i++) {
     const lx = LANE_X[free[i]];
-    if (Math.random() < d.obs) {
-      const t = ['cones', 'barrel', 'barrier'][Math.floor(Math.random() * 3)], s = SPR[t];
-      ents.push({ kind: 'obs', s, x: lx + (Math.random() - 0.5) * 0.12, z: z + Math.random() * 300, speed: 0, wN: s.ww / ROAD_W, len: 230 });
+    if (runRnd() < d.obs) {
+      const t = ['cones', 'barrel', 'barrier'][Math.floor(runRnd() * 3)], s = SPR[t];
+      ents.push({ kind: 'obs', s, x: lx + (runRnd() - 0.5) * 0.12, z: z + runRnd() * 300, speed: 0, wN: s.ww / ROAD_W, len: 230 });
     } else {
-      const s = SPR.cars[Math.floor(Math.random() * SPR.cars.length)];
-      ents.push({ kind: 'car', s, x: lx, z: z + Math.random() * 400, speed: MAX * (d.spMin + Math.random() * (d.spMax - d.spMin)), wN: s.ww / ROAD_W, len: 380,
-        lc: Math.random() < d.lc, lcAt: 9000 + Math.random() * 8000, changing: false, blink: 0, tx: lx, bump: 0 });
+      const s = SPR.cars[Math.floor(runRnd() * SPR.cars.length)];
+      ents.push({ kind: 'car', s, x: lx, z: z + runRnd() * 400, speed: MAX * (d.spMin + runRnd() * (d.spMax - d.spMin)), wN: s.ww / ROAD_W, len: 380,
+        lc: runRnd() < d.lc, lcAt: 9000 + runRnd() * 8000, changing: false, blink: 0, tx: lx, bump: 0 });
     }
   }
 }
@@ -1010,7 +1067,7 @@ function updateEntities(dt, playing) {
       if (e.lc && !e.changing && r0 < e.lcAt && r0 > 3000) {
         e.lc = false;
         const opts = [e.x - 2 / 3, e.x + 2 / 3].filter((v) => v > -0.8 && v < 0.8 && !ents.some((o) => o !== e && Math.abs(o.x - v) < 0.4 && Math.abs(o.z - e.z) < 2500));
-        if (opts.length) { e.tx = opts[Math.floor(Math.random() * opts.length)]; e.changing = true; e.blink = 0.9; }
+        if (opts.length) { e.tx = opts[Math.floor(runRnd() * opts.length)]; e.changing = true; e.blink = 0.9; }
       }
       if (e.changing) {
         if (e.blink > 0) e.blink -= dt;
@@ -1102,7 +1159,7 @@ function update(dt) {
 
   if (playing || m === 'ending') updateEntities(dt, playing);
   if (playing) {
-    if (st.dist >= st.nextSpawn) { spawn(); const g = diff().gap * (st.game === 'destructor' ? 0.78 : 1); st.nextSpawn = st.dist + g * (0.7 + Math.random() * 0.6); }
+    if (st.dist >= st.nextSpawn) { spawn(); const g = diff().gap * (st.game === 'destructor' ? 0.78 : 1); st.nextSpawn = st.dist + g * (0.7 + runRnd() * 0.6); }
     st.time -= dt;
     const cpZ = (st.stage + 1) * STAGE_SEGS * SEG;
     if (st.dist + L.playerZ >= cpZ) {
@@ -1360,11 +1417,107 @@ function syncMute() {
     b.setAttribute('aria-label', Sound.muted ? 'Activer le son' : 'Couper le son');
   });
 }
-function bestKey() { return (st.game === 'destructor' ? 'ct-best-d-' : 'ct-best-') + st.runTime; }
-function splitsKey() { return 'ct-splits-' + st.game; }
+function bestKey() { return st.daily ? 'ct-best-daily-' + today().key : (st.game === 'destructor' ? 'ct-best-d-' : 'ct-best-') + st.runTime; }
+function splitsKey() { return st.daily ? 'ct-splits-daily-' + today().key : 'ct-splits-' + st.game; }
 function loadSplits() { try { const a = JSON.parse(store.get(splitsKey(), '[]')); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
 const fmtT = (t) => t.toFixed(1).replace('.', ',') + ' s';
-function showBest() { const b = parseInt(store.get(bestKey(), '0'), 10) || 0; E.best.textContent = b ? fmt(b) : '—'; E.bestMode.textContent = (st.game === 'destructor' ? 'Destructor ' : '') + st.runTime + ' s'; }
+function showBest() {
+  const b = parseInt(store.get(bestKey(), '0'), 10) || 0; E.best.textContent = b ? fmt(b) : '—';
+  E.bestMode.textContent = st.daily ? `Défi #${today().num}` : (st.game === 'destructor' ? 'Destructor ' : '') + st.runTime + ' s';
+}
+
+/* ================= Défi du jour ================= */
+const FREE_TRIES = 2, PAR = 25;
+function today() {
+  const d = new Date(), key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const num = Math.floor((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - new Date(2026, 8, 1)) / 86400000) + 1;
+  return { key, num, seed: 1000 + num * 7919 % 100000, rules: num % 2 ? 'destructor' : 'classic' };
+}
+function dailyState() {
+  try { const o = JSON.parse(store.get('ct-daily-' + today().key, '{}')); return { tries: o.tries || 0, extra: o.extra || 0 }; } catch (e) { return { tries: 0, extra: 0 }; }
+}
+function saveDaily(o) { store.set('ct-daily-' + today().key, JSON.stringify(o)); }
+const triesLeft = () => { const d = dailyState(); return FREE_TRIES + d.extra - d.tries; };
+let menuGame = 'classic';
+function applyMenuGame() {
+  const t = today();
+  st.daily = menuGame === 'daily';
+  st.game = st.daily ? t.rules : menuGame;
+  const seed = st.daily ? t.seed : 7;
+  if (trackSeed !== seed) { buildTrack(seed); st.biome = st.prevBiome = findSeg(st.dist + L.playerZ).biome; }
+  $('#dailyNum').textContent = '#' + t.num;
+  $('#dailyInfo').hidden = !st.daily; $('#chronoLbl').hidden = st.daily; document.querySelector('.modes').hidden = st.daily;
+  if (st.daily) {
+    $('#dailyRules').textContent = `Règles du jour : ${t.rules === 'destructor' ? 'Destructor' : 'Classique'} · chrono 60 s`;
+    const d = dailyState(), total = Math.max(FREE_TRIES + d.extra, d.tries), dots = $('#triesDots');
+    dots.textContent = ''; for (let i = 0; i < total; i++) { const el = document.createElement('i'); if (i < d.tries) el.className = 'used'; dots.appendChild(el); }
+    dots.setAttribute('aria-label', `${Math.max(0, triesLeft())} sur ${total}`);
+  }
+  $('#startBtn').textContent = st.daily && triesLeft() <= 0 ? 'Essai bonus : pause corvée' : 'Prendre la route';
+  showBest();
+}
+
+/* ================= Pause corvée (au lieu d'une pub) ================= */
+const CHORES = {
+  matin: [[30, 'Fais ton lit', 'Couette tirée, oreiller en place.'], [30, 'Range ton bol du petit-déj', 'Direct dans le lave-vaisselle.'], [5, 'Bois un verre d’eau', 'Un pilote, ça s’hydrate.'], [5, 'Grand étirement', 'Bras en l’air, étire-toi au maximum.']],
+  midi: [[30, 'Mets la table', 'Assiettes, verres, couverts.'], [30, 'Débarrasse ton assiette', 'Et rince-la au passage.'], [5, 'Repose tes yeux', 'Regarde loin par la fenêtre.']],
+  aprem: [[30, 'Range ton cartable', 'Et prépare tes affaires.'], [30, 'Range un coin de ta chambre', 'Juste un coin, promis.'], [30, 'Fais 10 squats', 'Les pilotes ont des jambes solides.'], [5, 'Respire', 'Inspire quand le cercle grandit, souffle quand il rétrécit.'], [5, 'Repose tes yeux', 'Regarde loin et cligne des yeux.']],
+  soir: [[30, 'Aide pour le dîner', 'Demande ce qu’il y a à faire.'], [30, 'Débarrasse la table', 'Tout le monde sera content.'], [30, 'Prépare ton sac pour demain', 'Rien d’oublié ?'], [5, 'Bois un verre d’eau', 'Glou glou.']],
+  nuit: [[30, 'Brosse-toi les dents', 'La route sera encore là demain.'], [5, 'Respire calmement', 'Le sommeil, c’est le meilleur turbo.']]
+};
+const SLOT_NAMES = { matin: 'Matin', midi: 'Midi', aprem: 'Après-midi', soir: 'Soir', nuit: 'Nuit' };
+function slot() { const h = new Date().getHours(); return h >= 6 && h < 11 ? 'matin' : h < 14 && h >= 11 ? 'midi' : h < 18 && h >= 14 ? 'aprem' : h < 21 && h >= 18 ? 'soir' : 'nuit'; }
+let choreTimer = 0, choreFrom = 'menu';
+function openChore(from) {
+  choreFrom = from;
+  const sl = slot(), list = CHORES[sl], [dur, text, sub] = list[Math.floor(Math.random() * list.length)];
+  $('#choreWhen').textContent = `Pause ${dur <= 5 ? 'express' : 'corvée'} · ${SLOT_NAMES[sl]}`;
+  $('#choreText').textContent = text; $('#choreSub').textContent = sub;
+  const end = Date.now() + dur * 1000, btn = $('#choreDone'), cnt = $('#choreCount');
+  btn.disabled = true; cnt.textContent = String(dur);
+  E.menu.hidden = true; E.over.hidden = true; $('#chore').hidden = false;
+  clearInterval(choreTimer);
+  choreTimer = setInterval(() => {
+    const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+    cnt.textContent = String(left);
+    if (left <= 0) { clearInterval(choreTimer); btn.disabled = false; btn.focus({ preventScroll: true }); Sound.beep(660); }
+  }, 200);
+}
+$('#choreDone').addEventListener('click', () => {
+  const d = dailyState(); d.extra++; saveDaily(d);
+  $('#chore').hidden = true; startRun();
+});
+$('#choreSkip').addEventListener('click', () => {
+  clearInterval(choreTimer); $('#chore').hidden = true;
+  if (choreFrom === 'over') E.over.hidden = false; else { E.menu.hidden = false; applyMenuGame(); }
+});
+const TIPS = ['Pense à cligner des yeux : l’écran les fatigue.', 'Redresse-toi, épaules en arrière.', 'Une gorgée d’eau ?', 'Regarde au loin quelques secondes.', 'Secoue tes mains, détends tes pouces.'];
+
+function dailyResult() {
+  const t = today(), list = $('#splitList'); list.textContent = '';
+  let emojis = '';
+  for (let k = 0; k < 5; k++) {
+    const sp = st.splits[k], par = PAR * (k + 1), li = document.createElement('li');
+    const a = document.createElement('span'); a.textContent = `Checkpoint ${k + 1}`;
+    const b = document.createElement('span'); b.className = 'd';
+    if (sp === undefined) { b.textContent = '—'; b.classList.add('none'); emojis += '⬛'; }
+    else { const d = sp - par; b.textContent = `${fmtT(sp)} (${d <= 0 ? '−' : '+'}${fmtT(Math.abs(d))})`; b.classList.add(d <= 0 ? 'good' : 'bad'); emojis += d <= 0 ? '🟩' : '🟨'; }
+    li.append(a, b); list.appendChild(li);
+    if (sp === undefined && k >= 2) break;
+  }
+  $('#emojiRow').textContent = emojis;
+  const extra = st.game === 'destructor' ? ` · ${st.smashed} dégommés` : ` · ${st.dodged} évités`;
+  $('#shareText').value = `Corniche Turbo · Défi #${t.num} · ${st.game === 'destructor' ? 'Destructor' : 'Classique'}\n${emojis}\n${fmt(st.score)} pts · ${st.stage} checkpoint${st.stage > 1 ? 's' : ''}${extra}`;
+  $('#shareText').hidden = true; $('#shareBtn').textContent = 'Copier mon résultat';
+  const left = triesLeft();
+  $('#triesMsg').textContent = left > 0 ? `Il te reste ${left} essai${left > 1 ? 's' : ''} aujourd'hui.` : 'Plus d’essai gratuit : une pause corvée t’en donne un de plus.';
+  $('#againBtn').textContent = left > 0 ? 'Rejouer' : 'Pause corvée';
+}
+$('#shareBtn').addEventListener('click', () => {
+  const ta = $('#shareText'), txt = ta.value;
+  const fallback = () => { ta.hidden = false; ta.focus(); ta.select(); $('#shareBtn').textContent = 'Sélectionné : copie-le'; };
+  try { navigator.clipboard.writeText(txt).then(() => { $('#shareBtn').textContent = 'Copié ! Colle-le à tes potes'; }, fallback); } catch (e) { fallback(); }
+});
 
 function drawPreview() {
   const c = E.preview, r = c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -1393,7 +1546,7 @@ function buildSwatches() {
 }
 document.querySelectorAll('.game').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('.game').forEach((o) => o.setAttribute('aria-checked', String(o === b)));
-  st.game = b.dataset.g; store.set('ct-game', st.game); showBest();
+  menuGame = b.dataset.g; store.set('ct-game', menuGame); applyMenuGame();
 }));
 document.querySelectorAll('.mode').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('.mode').forEach((o) => o.setAttribute('aria-checked', String(o === b)));
@@ -1403,8 +1556,14 @@ document.querySelectorAll('.mode').forEach((b) => b.addEventListener('click', ()
 let wakeLock = null;
 function startRun() {
   Sound.init();
+  if (st.daily) {
+    if (trackSeed !== today().seed) applyMenuGame();
+    if (triesLeft() <= 0) { openChore(E.over.hidden ? 'menu' : 'over'); return; }
+    const d = dailyState(); d.tries++; saveDaily(d);
+    runRnd = rng(today().seed * 31 + 1);
+  } else runRnd = Math.random;
   try { if (navigator.wakeLock && !wakeLock) navigator.wakeLock.request('screen').then((l) => { wakeLock = l; l.addEventListener('release', () => { wakeLock = null; }); }).catch(() => {}); } catch (e) { /* ok */ }
-  Object.assign(st, { mode: 'countdown', dist: 0, speed: 0, x: 0, steer: 0, time: st.runTime, score: 0, combo: 0, stage: 0, dodged: 0, near: 0, crashes: 0, top: 0, invuln: 0, shake: 0, endT: 0, cd: 3, cdShown: 0, nextSpawn: 2500, shield: 0, smashed: 0, elapsed: 0, splits: [] });
+  Object.assign(st, { mode: 'countdown', dist: 0, speed: 0, x: 0, steer: 0, time: st.daily ? 60 : st.runTime, score: 0, combo: 0, stage: 0, dodged: 0, near: 0, crashes: 0, top: 0, invuln: 0, shake: 0, endT: 0, cd: 3, cdShown: 0, nextSpawn: 2500, shield: 0, smashed: 0, elapsed: 0, splits: [] });
   Sound.resetEngine();
   ents = []; parts = []; pops = [];
   const b = findSeg(L.playerZ).biome; st.biome = st.prevBiome = b; st.fade = 1;
@@ -1421,16 +1580,18 @@ function gameOver() {
   $('#stDodged').textContent = fmt(st.dodged); $('#stNear').textContent = fmt(st.near); $('#stCp').textContent = fmt(st.stage);
   $('#stDist').textContent = (st.dist / SEG * 1.34 / 1000).toFixed(1).replace('.', ',') + ' km';
   $('#stSmash').textContent = fmt(st.smashed); $('#stCrash').textContent = fmt(st.crashes);
+  $('#dailyBox').hidden = !st.daily; $('#againBtn').textContent = 'Rejouer';
+  if (st.daily) dailyResult();
   E.controls.hidden = true; E.over.hidden = false; showBest();
   setTimeout(() => $('#againBtn').focus({ preventScroll: true }), 50);
 }
 function toMenu() {
   st.mode = 'menu'; E.hud.hidden = true; E.controls.hidden = true; E.over.hidden = true; E.pause.hidden = true; E.menu.hidden = false;
-  ents = []; showBest(); requestAnimationFrame(drawPreview);
+  ents = []; applyMenuGame(); requestAnimationFrame(drawPreview);
 }
 function togglePause() {
   if (st.mode === 'paused') { st.mode = st.prevMode; E.pause.hidden = true; last = performance.now(); return; }
-  if (st.mode === 'play' || st.mode === 'countdown') { st.prevMode = st.mode; st.mode = 'paused'; E.pause.hidden = false; }
+  if (st.mode === 'play' || st.mode === 'countdown') { st.prevMode = st.mode; st.mode = 'paused'; $('#pauseTip').textContent = TIPS[Math.floor(Math.random() * TIPS.length)]; E.pause.hidden = false; }
 }
 $('#startBtn').addEventListener('click', startRun);
 $('#againBtn').addEventListener('click', startRun);
@@ -1457,8 +1618,9 @@ function init() {
   buildSprites(); buildLayers(); buildTrack(); layout();
   st.runTime = [30, 60, 90].includes(parseInt(store.get('ct-mode', '60'), 10)) ? parseInt(store.get('ct-mode', '60'), 10) : 60;
   document.querySelectorAll('.mode').forEach((o) => o.setAttribute('aria-checked', String(parseInt(o.dataset.t, 10) === st.runTime)));
-  st.game = store.get('ct-game', 'classic') === 'destructor' ? 'destructor' : 'classic';
-  document.querySelectorAll('.game').forEach((o) => o.setAttribute('aria-checked', String(o.dataset.g === st.game)));
+  menuGame = ['classic', 'destructor', 'daily'].includes(store.get('ct-game', 'classic')) ? store.get('ct-game', 'classic') : 'classic';
+  document.querySelectorAll('.game').forEach((o) => o.setAttribute('aria-checked', String(o.dataset.g === menuGame)));
+  applyMenuGame();
   buildSwatches(); syncMute(); showBest(); drawPreview();
   st.biome = st.prevBiome = findSeg(L.playerZ).biome;
   requestAnimationFrame((t) => { last = t; frame(t); });
