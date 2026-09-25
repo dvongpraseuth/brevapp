@@ -12,7 +12,8 @@ Réponds en français, de façon concise. Liste toujours tes actions avant de le
 - Le prototype jouable est dans le dépôt brevapp, branche claude/video-game-design-1znbv5 :
   - game/index.html : un seul fichier HTML, canvas 2D en fausse 3D façon OutRun
     (route par segments, trafic, bouclier, modes Classique et Destructor, défi du jour,
-    pause corvée, volant tactile, moteur flat-6 synthétisé en Web Audio).
+    pause corvée, volant tactile, nom du pilote, top 10 à l'ancienne,
+    moteur flat-6 synthétisé en Web Audio).
   - game/CONCEPTION.md : la fiche de game design (règles, points, progression).
   - game/PLAN.md : le plan de réalisation en 6 phases. C'EST TA FEUILLE DE ROUTE.
 - Lis ces 3 fichiers en entier avant de commencer. Le prototype est la référence

@@ -17,6 +17,7 @@ Jeu imaginé par Nathan & David. Fichier jouable : `game/index.html` (ouvrir dan
 | **Progression** | Chaque étape change de monde (Corniche → Provence → Canyon → Néon City) et ajoute plus de trafic, plus d'obstacles, des voitures qui changent de voie (avec clignotant !), et un bonus de temps plus petit. |
 | **Bonus bouclier** | Un bouclier bleu flotte parfois sur la route. Tu le prends → 7 s d'invincibilité : tu dégommes voitures et obstacles (+300 chacun). |
 | **Temps intermédiaires** | Comme dans Trackmania : à chaque checkpoint, le temps s'affiche avec l'écart sur ton meilleur passage (vert = plus rapide, rouge = plus lent). |
+| **Nom & Top 10** | Nom de pilote dans le menu (affiché sur la plaque et le panneau « ALLEZ … ! »). Tableau des 10 meilleurs scores à l'ancienne (police pixel, or/argent/bronze) par mode, par chrono et par défi du jour ; saisie du nom en fin de partie si on entre dans le top. |
 | **Feedback** | Score qui monte, textes « +100 » / « FRÔLÉ ! », sons, écran qui tremble au choc, poussière hors piste, lignes de vitesse. |
 | **Son** | Moteur 6 cylindres simulé (régime, 6 vitesses, pétarades au lâcher de gaz), vent, « whoosh » quand on double, choc. |
 | **Ambiance** | Style casual moderne, décors colorés qui défilent, voiture personnalisable (5 couleurs). |

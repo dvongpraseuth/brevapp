@@ -49,7 +49,7 @@ Objectif : un jeu mobile au niveau graphique d'un jeu casual actuel, avec un mod
 - **Configuration** : 2 à 8 joueurs (pseudo, couleur de voiture, avatar), nombre de runs par joueur (par défaut 2), 1 run bonus débloqué par une mission, mode de jeu (Classique, Destructor ou mixte), chrono.
 - **Équité** : même graine pour tout le monde dans une soirée (même route, même trafic).
 - **Tour par tour** : écran « Passe le téléphone à Léa » → prêt → compte à rebours. Pas d'infos de score visibles entre deux tours (option « suspense »).
-- **Fin de soirée** : podium animé, meilleurs temps par checkpoint, « dégommeur » de la soirée, carte de résultat à partager.
+- **Fin de soirée** : top 10 à l'ancienne (existe déjà dans le prototype, à reprendre), podium animé, meilleurs temps par checkpoint, « dégommeur » de la soirée, carte de résultat à partager.
 
 ## Phase 4 — Missions configurables (à la place des pubs)
 - **Espace parent** protégé par un code PIN.

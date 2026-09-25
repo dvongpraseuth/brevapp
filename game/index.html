@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Racing+Sans+One&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Press+Start+2P&family=Racing+Sans+One&display=swap">
 <style>
   :root {
     --ink: #15122E;
@@ -179,6 +179,30 @@
   .chore-text { margin: 0; font-family: var(--display); font-size: 30px; line-height: 1.1; text-wrap: balance; }
   .chore-sub { margin: 0; color: var(--muted); line-height: 1.4; }
   @keyframes breathe { 0%, 100% { transform: scale(.72); } 50% { transform: scale(1); } }
+  .name-field { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .name-field input, .hs-entry input {
+    flex: 1; min-width: 0; font: 400 14px "Press Start 2P", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--gold); background: rgba(0,0,0,.3); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px;
+    -webkit-user-select: text; user-select: text;
+  }
+  .name-field input:focus, .hs-entry input:focus { outline: none; border-color: var(--gold); }
+  .link-btn { background: none; border: 0; padding: 0; color: var(--teal); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; font-size: 12px; }
+  .hs { display: flex; flex-direction: column; gap: 10px; }
+  .hs-entry { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+  .hs-entry .row { align-items: stretch; }
+  .hs-entry input { flex: 3; }
+  .hs-ok { flex: 1; font-size: 18px; padding: 8px 10px 6px; }
+  .hs-title { margin: 4px 0 0; font: 400 12px "Press Start 2P", ui-monospace, monospace; color: var(--coral); text-transform: uppercase; line-height: 1.6; }
+  .hs-title.big { font-size: 14px; }
+  .hs-table { list-style: none; margin: 0; padding: 12px; display: grid; gap: 8px; background: #0C0A1E; border: 2px solid rgba(255,244,226,.12); border-radius: 12px;
+    font: 400 11px "Press Start 2P", ui-monospace, monospace; text-align: left; }
+  .hs-table li { display: grid; grid-template-columns: 4ch 1fr auto; gap: 10px; align-items: baseline; color: var(--cream); }
+  .hs-table li .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: uppercase; }
+  .hs-table li .s { font-variant-numeric: tabular-nums; }
+  .hs-table li:nth-child(1) { color: #FFC23D; } .hs-table li:nth-child(2) { color: #D5DCEA; } .hs-table li:nth-child(3) { color: #E29A5C; }
+  .hs-table li.empty { color: rgba(255,244,226,.25); }
+  .hs-table li.me { color: #0C0A1E; background: var(--teal); border-radius: 4px; padding: 3px 4px; margin: -3px -4px; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { background: #5EF2F7; } }
   .rules { display: flex; flex-wrap: wrap; gap: 6px; }
   .rules span { font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; color: var(--cream); }
   .rules b { color: var(--gold); }
@@ -236,7 +260,7 @@
   @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.12); } }
   @keyframes pop { 0% { opacity: 0; transform: scale(1.8); } 20% { opacity: 1; transform: scale(1); } 75% { opacity: 1; } 100% { opacity: 0; transform: scale(.9); } }
   @media (prefers-reduced-motion: reduce) {
-    .timer.low b, #count.pop, .breath-ring { animation: none; }
+    .timer.low b, #count.pop, .breath-ring, .hs-table li.me { animation: none; }
     #count.pop { opacity: 1; }
   }
 </style>
@@ -307,6 +331,10 @@
         <div class="swatches" role="radiogroup" aria-label="Couleur de la voiture" id="swatches">
           <span class="lbl">Peinture</span>
         </div>
+        <div class="name-field">
+          <label class="lbl" for="pilotName">Nom de pilote</label>
+          <input id="pilotName" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="PILOTE">
+        </div>
       </div>
       <div class="side">
         <span class="lbl">Mode de jeu</span>
@@ -336,6 +364,7 @@
         <button class="cta" id="startBtn">Prendre la route</button>
         <div class="meta">
           <span>Record (<span id="bestMode">60 s</span>) : <b id="bestVal">—</b></span>
+          <button class="link-btn" id="topBtn">Voir le top 10</button>
           <span class="keys">Clavier : ← → tourner · ↑ gaz · ↓ frein · P pause</span>
         </div>
       </div>
@@ -367,6 +396,14 @@
     </div>
   </div>
 
+  <div id="scores" class="overlay" hidden>
+    <div class="panel small-panel">
+      <p class="hs-title big">Top 10 · <span class="hs-mode"></span></p>
+      <ol class="hs-table" id="hsTableMenu"></ol>
+      <button class="cta" id="scoresClose">Retour</button>
+    </div>
+  </div>
+
   <div id="over" class="overlay" hidden>
     <div class="panel small-panel">
       <p class="eyebrow" id="overTitle">Temps écoulé</p>
@@ -380,6 +417,14 @@
         <div><dt>Dégommés</dt><dd id="stSmash">0</dd></div>
         <div><dt>Accrochages</dt><dd id="stCrash">0</dd></div>
       </dl>
+      <div class="hs">
+        <form class="hs-entry" id="hsEntry" hidden>
+          <label class="lbl" for="hsName">Tu entres dans le top 10 ! Ton nom :</label>
+          <div class="row"><input id="hsName" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="cta hs-ok" id="hsSave" type="submit">OK</button></div>
+        </form>
+        <p class="hs-title">Top 10 · <span class="hs-mode"></span></p>
+        <ol class="hs-table" id="hsTable"></ol>
+      </div>
       <div id="dailyBox" class="daily-box" hidden>
         <p class="lbl">Tes checkpoints · référence 25 s par étape</p>
         <ol class="splits" id="splitList"></ol>
@@ -451,6 +496,11 @@ const PAINTS = [
 ];
 let paintIdx = clamp(parseInt(store.get('ct-paint', '0'), 10) || 0, 0, PAINTS.length - 1);
 
+/* ================= Nom du pilote ================= */
+let pilotName = (store.get('ct-name', '') || '').slice(0, 10);
+const cleanName = (v) => v.replace(/[^\p{L}\p{N} ._-]/gu, '').trim().slice(0, 10);
+const plateText = () => (pilotName || 'PILOTE').toUpperCase().slice(0, 8);
+
 /* ================= Dessin : helpers ================= */
 function mk(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return c; }
 function spr(w, h, ww, draw) { return { img: mk(w, h, draw), ww }; }
@@ -508,7 +558,9 @@ function paintPlayer(g, W, H, p, brake) {
   g.fillStyle = '#1B1B21'; rr(g, 9, 54.5, 82, 8, 3); g.fill();
   g.fillStyle = '#F7F7F2'; rr(g, 39, 53, 22, 6.2, 1); g.fill();
   g.fillStyle = '#233C9A'; rr(g, 39, 53, 3, 6.2, 1); g.fill();
-  g.fillStyle = '#1B1B21'; g.font = '700 3.9px "Chakra Petch", sans-serif'; g.fillText('NATHAN', 51.5, 57.6);
+  g.fillStyle = '#1B1B21'; g.font = '700 3.9px "Chakra Petch", sans-serif'; const plate = plateText(); let fs = 3.9; g.font = `700 ${fs}px "Chakra Petch", sans-serif`;
+  while (g.measureText(plate).width > 17.5 && fs > 2) { fs -= 0.2; g.font = `700 ${fs}px "Chakra Petch", sans-serif`; }
+  g.fillText(plate, 51.5, 57.6);
   [44, 56].forEach((x) => { g.fillStyle = '#C9CED6'; g.beginPath(); g.ellipse(x, 62.3, 2.7, 1.9, 0, 0, 7); g.fill(); g.fillStyle = '#222'; g.beginPath(); g.ellipse(x, 62.3, 1.7, 1.1, 0, 0, 7); g.fill(); });
   if (brake) {
     g.globalCompositeOperation = 'lighter';
@@ -625,7 +677,7 @@ function buildSprites() {
     g.fillStyle = '#120F2C'; g.fillRect(w * 0.35, h - 70, w * 0.3, 70);
   });
   SPR.bld = [building(11), building(22), building(33)];
-  const board = (text, bg, fg) => spr(560, 380, 2600, (g, w) => {
+  const board = SPR.makeBoard = (text, bg, fg) => spr(560, 380, 2600, (g, w) => {
     g.fillStyle = '#55556A'; g.fillRect(90, 200, 22, 180); g.fillRect(w - 112, 200, 22, 180);
     g.fillStyle = bg; rr(g, 10, 10, w - 20, 206, 16); g.fill();
     g.strokeStyle = '#FFF4E2'; g.lineWidth = 8; rr(g, 22, 22, w - 44, 182, 10); g.stroke();
@@ -635,7 +687,7 @@ function buildSprites() {
     g.fillText(text, w / 2, 116);
   });
   SPR.boards = [
-    [board('ALLEZ NATHAN !', '#FF5B3A', '#FFF4E2'), board('GLACES 2 €', '#1FC7C1', '#15122E')],
+    [board(`ALLEZ ${plateText()} !`, '#FF5B3A', '#FFF4E2'), board('GLACES 2 €', '#1FC7C1', '#15122E')],
     [board('MIEL DE LAVANDE', '#7B5CC4', '#FFF4E2'), board('TURBO !', '#FFC23D', '#15122E')],
     [board('EAU FRAÎCHE 200 m', '#2E86C9', '#FFF4E2'), board('ROUTE DU CANYON', '#C6452D', '#FFF4E2')],
     [board('NÉON CITY', '#FF3FA4', '#FFF4E2'), board('PIZZA 24/24', '#1FE3F0', '#15122E')]
@@ -848,13 +900,15 @@ const keys = { left: false, right: false, gas: false, brake: false };
 const touch = { left: new Set(), right: new Set(), gas: new Set(), brake: new Set() };
 const input = (k) => keys[k] || touch[k].size > 0;
 const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', KeyQ: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'gas', KeyW: 'gas', KeyZ: 'gas', Space: 'gas', ArrowDown: 'brake', KeyS: 'brake' };
+const typing = (e) => e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA');
 window.addEventListener('keydown', (e) => {
+  if (typing(e)) return;
   const k = KEYMAP[e.code];
   if (k) { keys[k] = true; e.preventDefault(); }
   if ((e.code === 'KeyP' || e.code === 'Escape') && !e.repeat) togglePause();
   if (e.code === 'Enter' && st.mode === 'menu' && document.activeElement === document.body) startRun();
 });
-window.addEventListener('keyup', (e) => { const k = KEYMAP[e.code]; if (k) keys[k] = false; });
+window.addEventListener('keyup', (e) => { if (typing(e)) return; const k = KEYMAP[e.code]; if (k) keys[k] = false; });
 window.addEventListener('blur', () => { Object.keys(keys).forEach((k) => { keys[k] = false; touch[k].clear(); }); document.querySelectorAll('.ctl.on').forEach((el) => el.classList.remove('on')); });
 document.querySelectorAll('[data-k]').forEach((el) => {
   const k = el.dataset.k;
@@ -1426,6 +1480,54 @@ function showBest() {
   E.bestMode.textContent = st.daily ? `Défi #${today().num}` : (st.game === 'destructor' ? 'Destructor ' : '') + st.runTime + ' s';
 }
 
+/* ================= Top 10 à l'ancienne ================= */
+function topKey() { return 'ct-top-' + (st.daily ? 'daily-' + today().key : st.game + '-' + st.runTime); }
+function topLabel() { return st.daily ? `Défi #${today().num}` : `${st.game === 'destructor' ? 'Destructor' : 'Classique'} ${st.runTime} s`; }
+function loadTop() { try { const a = JSON.parse(store.get(topKey(), '[]')); return Array.isArray(a) ? a.slice(0, 10) : []; } catch (e) { return []; } }
+function renderTop(el, list, hi) {
+  el.textContent = '';
+  for (let i = 0; i < 10; i++) {
+    const r = list[i], li = document.createElement('li');
+    const a = document.createElement('span'), n = document.createElement('span'), sc = document.createElement('span');
+    a.textContent = String(i + 1).padStart(2, '0') + '.'; n.className = 'n'; sc.className = 's';
+    if (r) { n.textContent = r.n; sc.textContent = fmt(r.s); } else { n.textContent = '----------'; sc.textContent = '0'; li.className = 'empty'; }
+    if (i === hi) li.classList.add('me');
+    li.append(a, n, sc); el.appendChild(li);
+  }
+  document.querySelectorAll('.hs-mode').forEach((m) => { m.textContent = topLabel(); });
+}
+let pending = null;
+function prepareTop() {
+  const list = loadTop(), s = Math.round(st.score);
+  const qualifies = s > 0 && (list.length < 10 || s > list[list.length - 1].s);
+  const entry = $('#hsEntry');
+  if (!qualifies) { pending = null; entry.hidden = true; renderTop($('#hsTable'), list, -1); return; }
+  pending = { s, cp: st.stage, d: today().key };
+  const preview = list.concat([{ n: '???', s }]).sort((a, b) => b.s - a.s).slice(0, 10);
+  entry.hidden = false; $('#hsName').value = pilotName;
+  renderTop($('#hsTable'), preview, preview.findIndex((r) => r.n === '???' && r.s === s));
+}
+function commitTop() {
+  if (!pending) return;
+  const name = cleanName($('#hsName').value) || 'PILOTE';
+  pilotName = name; store.set('ct-name', name); $('#pilotName').value = name;
+  const row = { n: name, s: pending.s, cp: pending.cp, d: pending.d };
+  const list = loadTop().concat([row]).sort((a, b) => b.s - a.s).slice(0, 10);
+  store.set(topKey(), JSON.stringify(list)); pending = null;
+  $('#hsEntry').hidden = true;
+  renderTop($('#hsTable'), list, list.indexOf(row));
+}
+$('#hsEntry').addEventListener('submit', (e) => { e.preventDefault(); commitTop(); $('#againBtn').focus({ preventScroll: true }); });
+$('#topBtn').addEventListener('click', () => { renderTop($('#hsTableMenu'), loadTop(), -1); E.menu.hidden = true; $('#scores').hidden = false; });
+$('#scoresClose').addEventListener('click', () => { $('#scores').hidden = true; E.menu.hidden = false; });
+function applyName() {
+  pilotName = cleanName($('#pilotName').value); store.set('ct-name', pilotName);
+  if (SPR.makeBoard) SPR.boards[0][0].img = SPR.makeBoard(`ALLEZ ${plateText()} !`, '#FF5B3A', '#FFF4E2').img;
+  buildPlayerImgs(); drawPreview();
+}
+$('#pilotName').addEventListener('change', applyName);
+$('#pilotName').addEventListener('blur', applyName);
+
 /* ================= Défi du jour ================= */
 const FREE_TRIES = 2, PAR = 25;
 function today() {
@@ -1582,6 +1684,7 @@ function gameOver() {
   $('#stSmash').textContent = fmt(st.smashed); $('#stCrash').textContent = fmt(st.crashes);
   $('#dailyBox').hidden = !st.daily; $('#againBtn').textContent = 'Rejouer';
   if (st.daily) dailyResult();
+  prepareTop();
   E.controls.hidden = true; E.over.hidden = false; showBest();
   setTimeout(() => $('#againBtn').focus({ preventScroll: true }), 50);
 }
@@ -1594,8 +1697,8 @@ function togglePause() {
   if (st.mode === 'play' || st.mode === 'countdown') { st.prevMode = st.mode; st.mode = 'paused'; $('#pauseTip').textContent = TIPS[Math.floor(Math.random() * TIPS.length)]; E.pause.hidden = false; }
 }
 $('#startBtn').addEventListener('click', startRun);
-$('#againBtn').addEventListener('click', startRun);
-$('#menuBtn').addEventListener('click', toMenu);
+$('#againBtn').addEventListener('click', () => { commitTop(); startRun(); });
+$('#menuBtn').addEventListener('click', () => { commitTop(); toMenu(); });
 $('#resumeBtn').addEventListener('click', togglePause);
 $('#quitBtn').addEventListener('click', toMenu);
 $('#pauseBtn').addEventListener('click', togglePause);
@@ -1621,6 +1724,7 @@ function init() {
   menuGame = ['classic', 'destructor', 'daily'].includes(store.get('ct-game', 'classic')) ? store.get('ct-game', 'classic') : 'classic';
   document.querySelectorAll('.game').forEach((o) => o.setAttribute('aria-checked', String(o.dataset.g === menuGame)));
   applyMenuGame();
+  $('#pilotName').value = pilotName;
   buildSwatches(); syncMute(); showBest(); drawPreview();
   st.biome = st.prevBiome = findSeg(L.playerZ).biome;
   requestAnimationFrame((t) => { last = t; frame(t); });
